@@ -2,12 +2,28 @@
 const WEB_APP_URL =
   "https://script.google.com/macros/s/AKfycbyiKasAHQVaTZWMROTFV88caPB7jGAtDecnbTj3MVZdAqZs8x9YCcFEkKbwKIiLWOtZEg/exec";
 
+const REQUEST_TIMEOUT_MS = 20000; // 20 seconds
+
 const nameSelect = document.getElementById("name");
 const statusEl = document.getElementById("status");
 
+// Wraps fetch with a hard timeout so a stalled connection can never
+// leave the UI stuck on "Checking..." forever — it always eventually
+// resolves or throws.
+async function fetchWithTimeout(url, options) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 async function loadNames() {
   try {
-    const response = await fetch(WEB_APP_URL + "?action=getNames");
+    const response = await fetchWithTimeout(WEB_APP_URL + "?action=getNames");
     const result = await response.json();
     const names = result.names || [];
 
@@ -63,7 +79,7 @@ async function submitAttendance() {
     // Content-Type text/plain avoids a CORS preflight request, which
     // Apps Script web apps don't handle. The script still parses the
     // body as JSON on its end.
-    const response = await fetch(WEB_APP_URL, {
+    const response = await fetchWithTimeout(WEB_APP_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({ name, code }),
@@ -80,7 +96,12 @@ async function submitAttendance() {
       statusEl.className = "error";
     }
   } catch (err) {
-    statusEl.textContent = "Network error — please try again.";
+    if (err.name === "AbortError") {
+      statusEl.textContent =
+        "This is taking too long. Please check the sheet before submitting again — your entry may have already gone through.";
+    } else {
+      statusEl.textContent = "Network error — please try again.";
+    }
     statusEl.className = "error";
   } finally {
     submitBtn.disabled = false;
