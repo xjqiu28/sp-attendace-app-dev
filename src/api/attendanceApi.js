@@ -34,3 +34,16 @@ export async function submitAttendance(name, code) {
 
   return response.json();
 }
+
+// Returns { success: true, name, days, weekTotal } or { success: false, error }.
+// Read-only — never writes to the sheet. Throws (with err.name ===
+// 'AbortError' on timeout) on network failure.
+export async function checkWeeklyHours(name, code) {
+  const response = await fetchWithTimeout(WEB_APP_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'checkHours', name, code }),
+  });
+
+  return response.json();
+}

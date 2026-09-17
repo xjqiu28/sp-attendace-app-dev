@@ -1,16 +1,17 @@
 import { useState } from 'react';
-import { submitAttendance } from '../api/attendanceApi.js';
+import { checkWeeklyHours } from '../api/attendanceApi.js';
 import useNames from '../hooks/useNames.js';
 import NameAndCodeFields from './NameAndCodeFields.jsx';
 import StatusMessage from './StatusMessage.jsx';
 
-export default function AttendanceForm() {
+export default function WeeklyHoursForm() {
   const { names, loading: namesLoading, failed: namesLoadFailed } = useNames();
 
   const [selectedName, setSelectedName] = useState('');
   const [code, setCode] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [status, setStatus] = useState(null); // { text, type: 'success' | 'error' }
+  const [status, setStatus] = useState(null); // { text, type: 'error' } — only used for errors
+  const [result, setResult] = useState(null); // { name, days, weekTotal } on success
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -19,27 +20,26 @@ export default function AttendanceForm() {
 
     if (!selectedName || !trimmedCode) {
       setStatus({ text: 'Please select your name and enter your personal code.', type: 'error' });
+      setResult(null);
       return;
     }
 
     setSubmitting(true);
     setStatus({ text: 'Checking...', type: '' });
+    setResult(null);
 
     try {
-      const result = await submitAttendance(selectedName, trimmedCode);
+      const response = await checkWeeklyHours(selectedName, trimmedCode);
 
-      if (result.success) {
-        setStatus({ text: result.message, type: 'success' });
-        setCode('');
+      if (response.success) {
+        setStatus(null);
+        setResult(response);
       } else {
-        setStatus({ text: result.error, type: 'error' });
+        setStatus({ text: response.error, type: 'error' });
       }
     } catch (err) {
       if (err.name === 'AbortError') {
-        setStatus({
-          text: "This is taking too long. Please check the sheet before submitting again — your entry may have already gone through.",
-          type: 'error',
-        });
+        setStatus({ text: 'This is taking too long. Please try again.', type: 'error' });
       } else {
         setStatus({ text: 'Network error — please try again.', type: 'error' });
       }
@@ -50,10 +50,9 @@ export default function AttendanceForm() {
 
   return (
     <div className="card">
-      <h1>Attendance</h1>
+      <h1>My Hours</h1>
       <p className="sub">
-        Select your name and enter your personal code — sign-in or sign-out is
-        detected automatically.
+        Select your name and enter your personal code to see this week's hours.
       </p>
 
       <form onSubmit={handleSubmit}>
@@ -68,14 +67,31 @@ export default function AttendanceForm() {
         />
 
         <button type="submit" disabled={submitting}>
-          Submit
+          Check Hours
         </button>
       </form>
 
-      {namesLoadFailed && !status ? (
+      {namesLoadFailed && !status && !result ? (
         <StatusMessage text="Couldn't load the name list — check the Web App URL." type="error" />
       ) : (
         <StatusMessage text={status?.text} type={status?.type} />
+      )}
+
+      {result && (
+        <table className="hours-table">
+          <tbody>
+            {result.days.map((day) => (
+              <tr key={day.date}>
+                <td>{day.label}</td>
+                <td className="hours-cell">{day.hours === null ? '—' : day.hours.toFixed(2)}</td>
+              </tr>
+            ))}
+            <tr className="hours-total-row">
+              <td>Total</td>
+              <td className="hours-cell">{result.weekTotal.toFixed(2)}</td>
+            </tr>
+          </tbody>
+        </table>
       )}
     </div>
   );

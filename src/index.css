@@ -13,6 +13,65 @@ body {
   margin: 0;
 }
 
+.app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: #e3e6ea;
+  border-radius: 8px;
+  padding: 4px;
+  width: 320px;
+  box-sizing: border-box;
+}
+
+.tab {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #555;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 0;
+}
+
+.tab.active {
+  background: white;
+  color: #1a73e8;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.hours-table {
+  width: 100%;
+  margin-top: 20px;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.hours-table td {
+  padding: 8px 4px;
+  border-bottom: 1px solid #eee;
+}
+
+.hours-cell {
+  text-align: right;
+}
+
+.hours-total-row td {
+  border-top: 2px solid #ccc;
+  border-bottom: none;
+  font-weight: 700;
+  padding-top: 10px;
+}
+
 .card {
   background: white;
   padding: 32px;
