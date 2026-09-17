@@ -2,36 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Attendance Sign In / Sign Out</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="styles.css" />
+    <title>Attendance Sign In / Sign Out</title>
   </head>
   <body>
-    <div class="card">
-      <h1>Attendance</h1>
-      <p class="sub">
-        Select your name and enter your personal code — sign-in or sign-out is
-        detected automatically.
-      </p>
-
-      <label for="name">Full Name</label>
-      <select id="name" disabled>
-        <option value="">Loading names...</option>
-      </select>
-
-      <label for="code">Personal Code</label>
-      <input
-        type="text"
-        id="code"
-        placeholder="e.g. A12345"
-        autocomplete="off"
-      />
-
-      <button id="submitBtn" onclick="submitAttendance()">Submit</button>
-
-      <div id="status"></div>
-    </div>
-
-    <script src="script.js"></script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
