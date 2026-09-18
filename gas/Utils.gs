@@ -117,6 +117,48 @@ function isLateSignIn(signInDate) {
 }
 
 /**
+ * Returns how long after the SIGN_IN_CUTOFF_HOUR a sign-in occurred, or
+ * null if it wasn't late. { hours, minutes, formatted }.
+ */
+function getLateDuration(signInDate) {
+  const cutoff = new Date(signInDate);
+  cutoff.setHours(SIGN_IN_CUTOFF_HOUR, 0, 0, 0);
+
+  const millisecondsLate = signInDate.getTime() - cutoff.getTime();
+
+  if (millisecondsLate <= 0) {
+    return null;
+  }
+
+  const totalMinutesLate = Math.round(millisecondsLate / (1000 * 60));
+  const hoursLate = Math.floor(totalMinutesLate / 60);
+  const minutesLate = totalMinutesLate % 60;
+
+  return {
+    hours: hoursLate,
+    minutes: minutesLate,
+    formatted: formatLateDuration(hoursLate, minutesLate),
+  };
+}
+
+/**
+ * Formats a late duration as "1 hour and 5 minutes", "15 minutes", etc.
+ */
+function formatLateDuration(hours, minutes) {
+  const parts = [];
+
+  if (hours > 0) {
+    parts.push(`${hours} hour${hours === 1 ? '' : 's'}`);
+  }
+
+  if (minutes > 0 || parts.length === 0) {
+    parts.push(`${minutes} minute${minutes === 1 ? '' : 's'}`);
+  }
+
+  return parts.join(' and ');
+}
+
+/**
  * Creates a date column if it does not already exist.
  */
 function createDateColumn(sheet, dateToday) {
