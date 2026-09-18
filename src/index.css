@@ -49,27 +49,274 @@ body {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.hours-table {
-  width: 100%;
-  margin-top: 20px;
-  border-collapse: collapse;
-  font-size: 14px;
+.dashboard {
+  width: min(90vw, 900px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.hours-table td {
-  padding: 8px 4px;
-  border-bottom: 1px solid #eee;
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  padding: 16px 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
-.hours-cell {
+.dashboard-header h1 {
+  margin: 0;
+  text-align: left;
+}
+
+.dashboard-header .tab {
+  width: auto;
+  flex: none;
+  background: #f4f6f8;
+  color: #555;
+}
+
+.dashboard-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dashboard-mode-tabs {
+  width: 200px;
+}
+
+.generate-codes {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.generate-codes-button {
+  width: auto;
+  flex: none;
+  background: #f4f6f8;
+  color: #555;
+  margin-top: 0;
+}
+
+.generate-codes-message {
+  margin: 0;
+  font-size: 12px;
   text-align: right;
 }
 
-.hours-total-row td {
-  border-top: 2px solid #ccc;
-  border-bottom: none;
+.generate-codes-message.success {
+  color: #2e7d32;
+}
+
+.generate-codes-message.error {
+  color: #c62828;
+}
+
+.daily-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.summary-stat,
+.summary-list {
+  background: white;
+  padding: 16px 18px;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.summary-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.summary-stat-value {
+  font-size: 28px;
   font-weight: 700;
+  color: #1a73e8;
+}
+
+.summary-stat-label {
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
+}
+
+.summary-list-title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: #555;
+}
+
+.summary-list-empty {
+  margin: 0;
+  font-size: 12px;
+  color: #999;
+}
+
+.summary-list-items {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  color: #444;
+  max-height: 140px;
+  overflow-y: auto;
+}
+
+.summary-list-items li {
+  padding: 2px 0;
+}
+
+.week-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.week-button {
+  width: auto;
+  flex: none;
+  margin-top: 0;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  background: white;
+  color: #555;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.week-button.active {
+  background: #1a73e8;
+  color: white;
+}
+
+.attendance-card-total {
+  font-weight: 700;
+  font-size: 16px;
+  color: #1a73e8;
+}
+
+.weekly-card {
+  cursor: pointer;
+}
+
+.expand-indicator {
+  font-size: 10px;
+  color: #999;
+}
+
+.weekly-breakdown {
+  margin-top: 10px;
   padding-top: 10px;
+  border-top: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.weekly-breakdown-row {
+  font-size: 12px;
+  color: #444;
+  padding-bottom: 4px;
+}
+
+.weekly-breakdown-top {
+  display: flex;
+  justify-content: space-between;
+}
+
+.weekly-breakdown-day {
+  color: #888;
+}
+
+.weekly-breakdown-hours {
+  text-align: right;
+  color: #1a73e8;
+  font-weight: 600;
+  margin-top: 1px;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.attendance-card {
+  background: white;
+  padding: 18px;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.attendance-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.attendance-card-badges {
+  display: flex;
+  gap: 6px;
+}
+
+.attendance-card-name {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.attendance-card-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #444;
+  padding: 4px 0;
+}
+
+.attendance-card-label {
+  color: #888;
+}
+
+.badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.status-complete {
+  background: #e6f4ea;
+  color: #2e7d32;
+}
+
+.status-signed-in {
+  background: #fff4e5;
+  color: #b26a00;
+}
+
+.status-not-signed-in {
+  background: #f1f1f1;
+  color: #777;
+}
+
+.status-late {
+  background: #fdecea;
+  color: #c62828;
 }
 
 .card {

@@ -1,12 +1,8 @@
 import { useState } from 'react';
 import { submitAttendance } from '../api/attendanceApi.js';
-import useNames from '../hooks/useNames.js';
-import NameAndCodeFields from './NameAndCodeFields.jsx';
-import StatusMessage from './StatusMessage.jsx';
+import LoginCard from './LoginCard.jsx';
 
-export default function AttendanceForm() {
-  const { names, loading: namesLoading, failed: namesLoadFailed } = useNames();
-
+export default function AttendanceForm({ names, namesLoading, namesLoadFailed }) {
   const [selectedName, setSelectedName] = useState('');
   const [code, setCode] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -49,34 +45,20 @@ export default function AttendanceForm() {
   }
 
   return (
-    <div className="card">
-      <h1>Attendance</h1>
-      <p className="sub">
-        Select your name and enter your personal code — sign-in or sign-out is
-        detected automatically.
-      </p>
-
-      <form onSubmit={handleSubmit}>
-        <NameAndCodeFields
-          names={names}
-          namesLoading={namesLoading}
-          namesLoadFailed={namesLoadFailed}
-          selectedName={selectedName}
-          onNameChange={setSelectedName}
-          code={code}
-          onCodeChange={setCode}
-        />
-
-        <button type="submit" disabled={submitting}>
-          Submit
-        </button>
-      </form>
-
-      {namesLoadFailed && !status ? (
-        <StatusMessage text="Couldn't load the name list — check the Web App URL." type="error" />
-      ) : (
-        <StatusMessage text={status?.text} type={status?.type} />
-      )}
-    </div>
+    <LoginCard
+      title="Attendance"
+      subtitle="Select your name and enter your personal code — sign-in or sign-out is detected automatically."
+      names={names}
+      namesLoading={namesLoading}
+      namesLoadFailed={namesLoadFailed}
+      selectedName={selectedName}
+      onNameChange={setSelectedName}
+      code={code}
+      onCodeChange={setCode}
+      onSubmit={handleSubmit}
+      submitting={submitting}
+      submitLabel="Submit"
+      status={status}
+    />
   );
 }

@@ -1,0 +1,141 @@
+/**
+ * ===================================================================
+ * SHARED UTILITIES
+ * ===================================================================
+ * Low-level sheet, attendance-cell, and date/time helpers used across
+ * every other file in this project.
+ */
+
+function getAttendanceSheet() {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  return spreadsheet.getSheetByName(SHEET_NAME) || spreadsheet.getSheets()[0];
+}
+
+/**
+ * Returns an object containing column indexes. Indexes are zero-based.
+ */
+function getColumnIndexes(sheet) {
+  if (!sheet) {
+    sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  }
+
+  const lastColumn = sheet.getLastColumn();
+  const headers = sheet.getRange(1, 1, 1, lastColumn).getValues()[0];
+
+  const indexes = {};
+
+  headers.forEach((header, index) => {
+    const trimmedHeader = String(header).trim();
+    if (trimmedHeader !== '') {
+      indexes[trimmedHeader] = index;
+    }
+  });
+
+  return indexes;
+}
+
+/**
+ * Parses attendance JSON safely.
+ */
+function parseAttendanceData(existingCellValue, personRowNumber) {
+  try {
+    return JSON.parse(String(existingCellValue));
+  } catch (error) {
+    Logger.log(`Could not parse existing attendance data in row ${personRowNumber}.`);
+    return null;
+  }
+}
+
+/**
+ * Parses the formatted date string: M/d/yyyy h:mm:ss a
+ */
+function parseFormattedDateTime(dateTimeText) {
+  const dateTimeParts = String(dateTimeText).match(
+    /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})\s+(AM|PM)$/i
+  );
+
+  if (!dateTimeParts) {
+    throw new Error(`Invalid date-time format: ${dateTimeText}`);
+  }
+
+  const month = Number(dateTimeParts[1]) - 1;
+  const day = Number(dateTimeParts[2]);
+  const year = Number(dateTimeParts[3]);
+  let hour = Number(dateTimeParts[4]);
+  const minute = Number(dateTimeParts[5]);
+  const second = Number(dateTimeParts[6]);
+  const meridiem = dateTimeParts[7].toUpperCase();
+
+  if (meridiem === 'PM' && hour !== 12) {
+    hour += 12;
+  }
+  if (meridiem === 'AM' && hour === 12) {
+    hour = 0;
+  }
+
+  return new Date(year, month, day, hour, minute, second);
+}
+
+/**
+ * Formats a date as: M/d/yyyy h:mm:ss a
+ */
+function formatDateTime(dateValue) {
+  return Utilities.formatDate(dateValue, Session.getScriptTimeZone(), 'M/d/yyyy h:mm:ss a');
+}
+
+/**
+ * Returns yesterday's date in the same format used by the headers.
+ */
+function getPreviousDate(currentDate) {
+  const previousDate = new Date(currentDate);
+  previousDate.setDate(previousDate.getDate() - 1);
+  return Utilities.formatDate(previousDate, Session.getScriptTimeZone(), 'M/d/yyyy');
+}
+
+/**
+ * Calculates total hours worked between sign-in and sign-out.
+ */
+function calculateTotalHours(signInDate, signOutDate) {
+  const millisecondsWorked = signOutDate.getTime() - signInDate.getTime();
+  const totalMinutesWorked = Math.round(millisecondsWorked / (1000 * 60));
+  const hoursWorked = Math.floor(totalMinutesWorked / 60);
+  const minutesWorked = totalMinutesWorked % 60;
+
+  return {
+    formatted: `${hoursWorked} hours and ${minutesWorked} minutes`,
+    decimal: Number((totalMinutesWorked / 60).toFixed(2)),
+  };
+}
+
+/**
+ * Checks whether a sign-in occurred after the SIGN_IN_CUTOFF_HOUR.
+ */
+function isLateSignIn(signInDate) {
+  const cutoff = new Date(signInDate);
+  cutoff.setHours(SIGN_IN_CUTOFF_HOUR, 0, 0, 0);
+  return signInDate > cutoff;
+}
+
+/**
+ * Creates a date column if it does not already exist.
+ */
+function createDateColumn(sheet, dateToday) {
+  const lastColumn = sheet.getLastColumn();
+  const headers = sheet.getRange(1, 1, 1, lastColumn).getValues()[0];
+
+  const dateAlreadyExists = headers.some((header) => String(header).trim() === dateToday);
+
+  if (dateAlreadyExists) {
+    return;
+  }
+
+  const newColumnNumber = lastColumn + 1;
+  sheet.getRange(1, newColumnNumber).setValue(dateToday);
+}
+
+/**
+ * Deletes a row from the sheet. Only used by the form-trigger flow.
+ */
+function deleteSelectedRow(sheet, rowNumber) {
+  sheet.deleteRow(rowNumber);
+}

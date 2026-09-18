@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import AttendanceForm from './components/AttendanceForm.jsx';
-import WeeklyHoursForm from './components/WeeklyHoursForm.jsx';
+import DirectorDashboard from './components/DirectorDashboard.jsx';
+import useNames from './hooks/useNames.js';
 
-// Simple tab-based view switch for now — no routing library needed
-// yet. Each page re-validates name + code itself (no shared login
-// session), which keeps this simple until real auth gets added.
+// The name roster is fetched ONCE here and passed down to whichever
+// tab is active, instead of each tab fetching it independently —
+// switching tabs no longer re-triggers a network call.
 export default function App() {
   const [activeTab, setActiveTab] = useState('attendance');
+  const { names, loading: namesLoading, failed: namesLoadFailed } = useNames();
 
   return (
     <div className="app">
@@ -20,14 +22,22 @@ export default function App() {
         </button>
         <button
           type="button"
-          className={activeTab === 'hours' ? 'tab active' : 'tab'}
-          onClick={() => setActiveTab('hours')}
+          className={activeTab === 'director' ? 'tab active' : 'tab'}
+          onClick={() => setActiveTab('director')}
         >
-          My Hours
+          Director View
         </button>
       </nav>
 
-      {activeTab === 'attendance' ? <AttendanceForm /> : <WeeklyHoursForm />}
+      {activeTab === 'attendance' ? (
+        <AttendanceForm names={names} namesLoading={namesLoading} namesLoadFailed={namesLoadFailed} />
+      ) : (
+        <DirectorDashboard
+          names={names}
+          namesLoading={namesLoading}
+          namesLoadFailed={namesLoadFailed}
+        />
+      )}
     </div>
   );
 }
