@@ -70,7 +70,10 @@ function runBirthdayCodeGeneration(sheet, columnIndexes) {
       continue;
     }
 
-    personalCodeCell.setValue(birthdayCode);
+    // Force plain-text formatting before writing. Without this, Sheets
+    // treats an all-digit string like "02021976" as a number and
+    // silently drops the leading zero, corrupting the code.
+    personalCodeCell.setNumberFormat('@').setValue(birthdayCode);
     generatedNames.push(name);
   }
 

@@ -36,8 +36,9 @@ export async function submitAttendance(name, code) {
 }
 
 // Daily: returns { success: true, date, entries: [{ name, signInTime,
-// signOutTime, totalHoursDecimal, totalHoursFormatted, status, isLate }],
-// totalRoster, totalSignedIn, absentNames, lateNames }.
+// signOutTime, totalHoursDecimal, totalHoursFormatted, status, isLate,
+// lateBy: { hours, minutes, formatted } | null }], totalRoster,
+// totalSignedIn, absentNames, lateNames: [{ name, lateBy }].
 // Weekly: returns { success: true, weekNumber, weekStart, weekEnd,
 // availableWeeks: [{ weekNumber, weekStart, weekEnd, label }], entries:
 // [{ name, weekTotalHours, weekTotalFormatted, days }] }. Pass weekNumber

@@ -118,6 +118,7 @@ function buildDirectorAttendanceResult(columnIndexes, dataRows) {
     let totalHoursDecimal = null;
     let totalHoursFormatted = null;
     let isLate = false;
+    let lateBy = null;
 
     if (todayColumnIndex !== undefined) {
       const cellValue = row[todayColumnIndex];
@@ -135,7 +136,9 @@ function buildDirectorAttendanceResult(columnIndexes, dataRows) {
           }
 
           if (signInTime) {
-            isLate = isLateSignIn(parseFormattedDateTime(signInTime));
+            const parsedSignInTime = parseFormattedDateTime(signInTime);
+            isLate = isLateSignIn(parsedSignInTime);
+            lateBy = isLate ? getLateDuration(parsedSignInTime) : null;
           }
         }
       }
@@ -159,6 +162,7 @@ function buildDirectorAttendanceResult(columnIndexes, dataRows) {
       totalHoursFormatted: totalHoursFormatted,
       status: status,
       isLate: isLate,
+      lateBy: lateBy,
     });
   });
 
@@ -166,7 +170,9 @@ function buildDirectorAttendanceResult(columnIndexes, dataRows) {
 
   const totalSignedIn = entries.filter((entry) => Boolean(entry.signInTime)).length;
   const absentNames = entries.filter((entry) => !entry.signInTime).map((entry) => entry.name);
-  const lateNames = entries.filter((entry) => entry.isLate).map((entry) => entry.name);
+  const lateNames = entries
+    .filter((entry) => entry.isLate)
+    .map((entry) => ({ name: entry.name, lateBy: entry.lateBy ? entry.lateBy.formatted : null }));
 
   return {
     success: true,

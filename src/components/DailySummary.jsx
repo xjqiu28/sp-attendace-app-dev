@@ -1,17 +1,18 @@
-function SummaryNameList({ title, names, emptyText }) {
+function SummaryNameList({ title, items, emptyText, renderItem }) {
   return (
     <div className="summary-list">
       <h2 className="summary-list-title">
-        {title} ({names.length})
+        {title} ({items.length})
       </h2>
 
-      {names.length === 0 ? (
+      {items.length === 0 ? (
         <p className="summary-list-empty">{emptyText}</p>
       ) : (
         <ul className="summary-list-items">
-          {names.map((name) => (
-            <li key={name}>{name}</li>
-          ))}
+          {items.map((item) => {
+            const name = typeof item === 'string' ? item : item.name;
+            return <li key={name}>{renderItem ? renderItem(item) : name}</li>;
+          })}
         </ul>
       )}
     </div>
@@ -28,8 +29,18 @@ export default function DailySummary({ totalRoster, totalSignedIn, absentNames, 
         <span className="summary-stat-label">Signed In</span>
       </div>
 
-      <SummaryNameList title="Absent" names={absentNames} emptyText="Everyone has signed in." />
-      <SummaryNameList title="Signed In Late" names={lateNames} emptyText="No late sign-ins today." />
+      <SummaryNameList title="Absent" items={absentNames} emptyText="Everyone has signed in." />
+      <SummaryNameList
+        title="Signed In Late"
+        items={lateNames}
+        emptyText="No late sign-ins today."
+        renderItem={(entry) => (
+          <>
+            {entry.name}
+            {entry.lateBy && <span className="summary-list-detail"> — {entry.lateBy} late</span>}
+          </>
+        )}
+      />
     </div>
   );
 }
