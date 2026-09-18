@@ -1,0 +1,41 @@
+name: Deploy Apps Script
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'gas/**'
+  workflow_dispatch:
+
+# The web app URL in src/config.js points at a specific deployment ID
+# (not @HEAD), so `clasp push` alone isn't enough — the deployment has
+# to be re-pointed at the newly pushed version too. Update this if the
+# deployment is ever recreated.
+env:
+  CLASP_DEPLOYMENT_ID: AKfycbyiKasAHQVaTZWMROTFV88caPB7jGAtDecnbTj3MVZdAqZs8x9YCcFEkKbwKIiLWOtZEg
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm install
+
+      - name: Configure clasp credentials
+        run: |
+          echo "${{ secrets.CLASPRC_JSON }}" | base64 -d > ~/.clasprc.json
+          cat <<EOF > .clasp.json
+          {
+            "scriptId": "${{ secrets.CLASP_SCRIPT_ID }}",
+            "rootDir": "gas"
+          }
+          EOF
+
+      - run: npx clasp push --force
+
+      - run: npx clasp deploy --deploymentId "$CLASP_DEPLOYMENT_ID" --description "Auto-deploy from ${{ github.sha }}"
