@@ -28,53 +28,44 @@ function authorizeDirector(submittedName, submittedPersonalCode) {
 
   const nameColumnIndex = columnIndexes.Name;
   const personalCodeColumnIndex = columnIndexes['Personal Code'];
-  const adminColumnIndex = columnIndexes.Admin;
 
   if (nameColumnIndex === undefined || personalCodeColumnIndex === undefined) {
     throw new Error('The sheet must contain both "Name" and "Personal Code" headers.');
   }
 
-  const lastRow = sheet.getLastRow();
+  // Cached roster lookup instead of a full-sheet bulk read — a bad name
+  // or code (by far the most common case for typos) now fails without
+  // touching the sheet at all.
+  const roster = getRoster(sheet, columnIndexes);
+  const person = roster.byLowerName[submittedName.toLowerCase()];
 
-  if (lastRow < 2) {
+  if (!person) {
     return { authorized: false, error: 'Name not found. Please check spelling or contact the admin.' };
   }
 
+  if (person.personalCode !== submittedPersonalCode) {
+    return { authorized: false, error: 'Incorrect personal code for that name.' };
+  }
+
+  if (columnIndexes.Admin === undefined) {
+    return {
+      authorized: false,
+      error: 'This view has not been set up yet. Add an "Admin" column to the sheet and mark this person Yes.',
+    };
+  }
+
+  if (!person.isAdmin) {
+    return { authorized: false, error: 'This account is not authorized to view this page.' };
+  }
+
+  // Only an authorized request pays for the full-sheet read — the
+  // dashboard views need every date column, which changes on every
+  // sign-in/out and so can't be served from the roster cache.
+  const lastRow = sheet.getLastRow();
   const lastColumn = sheet.getLastColumn();
   const dataRows = sheet.getRange(2, 1, lastRow - 1, lastColumn).getValues();
 
-  for (let i = 0; i < dataRows.length; i++) {
-    const row = dataRows[i];
-    const storedName = String(row[nameColumnIndex]).trim();
-
-    if (storedName.toLowerCase() !== submittedName.toLowerCase()) {
-      continue;
-    }
-
-    const storedPersonalCode = String(row[personalCodeColumnIndex]).trim();
-
-    if (storedPersonalCode !== submittedPersonalCode) {
-      return { authorized: false, error: 'Incorrect personal code for that name.' };
-    }
-
-    if (adminColumnIndex === undefined) {
-      return {
-        authorized: false,
-        error: 'This view has not been set up yet. Add an "Admin" column to the sheet and mark this person Yes.',
-      };
-    }
-
-    const adminValue = String(row[adminColumnIndex]).trim().toLowerCase();
-    const isAuthorized = ['yes', 'true', 'y', '1'].indexOf(adminValue) !== -1;
-
-    if (!isAuthorized) {
-      return { authorized: false, error: 'This account is not authorized to view this page.' };
-    }
-
-    return { authorized: true, sheet: sheet, columnIndexes: columnIndexes, dataRows: dataRows };
-  }
-
-  return { authorized: false, error: 'Name not found. Please check spelling or contact the admin.' };
+  return { authorized: true, sheet: sheet, columnIndexes: columnIndexes, dataRows: dataRows };
 }
 
 /**

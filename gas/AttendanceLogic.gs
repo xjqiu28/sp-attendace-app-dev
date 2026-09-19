@@ -35,77 +35,62 @@ function processAttendanceSubmission(submittedName, submittedPersonalCode) {
     todayColumnIndex = columnIndexes[dateToday];
   }
 
-  const lastRow = sheet.getLastRow();
+  // Cached name -> row/code lookup instead of bulk-reading every row AND
+  // every date column ever created — a name/code mismatch now costs zero
+  // sheet reads, and a match only reads the two cells it actually needs.
+  const roster = getRoster(sheet, columnIndexes);
+  const person = roster.byLowerName[submittedName.toLowerCase()];
 
-  if (lastRow < 2) {
+  if (!person) {
     return { success: false, error: 'Name not found. Please check spelling or contact the admin.' };
   }
 
-  // One bulk read instead of a getRange().getValue() call per row — much
-  // faster as the roster grows, and less likely to stall on slow networks.
-  const lastColumn = sheet.getLastColumn();
-  const dataRows = sheet.getRange(2, 1, lastRow - 1, lastColumn).getValues();
-
-  for (let i = 0; i < dataRows.length; i++) {
-    const personRowNumber = i + 2;
-    const row = dataRows[i];
-
-    const storedName = String(row[nameColumnIndex]).trim();
-
-    if (storedName.toLowerCase() !== submittedName.toLowerCase()) {
-      continue;
-    }
-
-    const storedPersonalCode = String(row[personalCodeColumnIndex]).trim();
-
-    if (storedPersonalCode !== submittedPersonalCode) {
-      return { success: false, error: 'Incorrect personal code for that name.' };
-    }
-
-    const yesterdayDate = getPreviousDate(currentTime);
-    const yesterdayColumnIndex = columnIndexes[yesterdayDate];
-
-    if (yesterdayColumnIndex !== undefined) {
-      const yesterdayCellValue = row[yesterdayColumnIndex];
-
-      if (yesterdayCellValue !== '' && yesterdayCellValue !== null) {
-        const yesterdayAttendanceData = parseAttendanceData(yesterdayCellValue, personRowNumber);
-
-        if (
-          yesterdayAttendanceData &&
-          yesterdayAttendanceData['sign in time'] &&
-          !yesterdayAttendanceData['sign out time']
-        ) {
-          const yesterdayAttendanceCell = sheet.getRange(personRowNumber, yesterdayColumnIndex + 1);
-
-          recordPreviousDaySignOut(
-            personRowNumber,
-            yesterdayAttendanceCell,
-            yesterdayAttendanceData,
-            currentTime
-          );
-
-          return {
-            success: true,
-            message: `${submittedName}, you were signed out for yesterday (${yesterdayDate}).`,
-          };
-        }
-      }
-    }
-
-    const attendanceCell = sheet.getRange(personRowNumber, todayColumnIndex + 1);
-    const entryStatus = recordAttendanceEntry(personRowNumber, attendanceCell);
-
-    if (entryStatus === 'signed-in') {
-      return { success: true, message: `${submittedName}, you have been signed in.` };
-    }
-    if (entryStatus === 'signed-out') {
-      return { success: true, message: `${submittedName}, you have been signed out.` };
-    }
-    return { success: false, error: `${submittedName}, you have already signed in and out today.` };
+  if (person.personalCode !== submittedPersonalCode) {
+    return { success: false, error: 'Incorrect personal code for that name.' };
   }
 
-  return { success: false, error: 'Name not found. Please check spelling or contact the admin.' };
+  const personRowNumber = person.row;
+
+  const yesterdayDate = getPreviousDate(currentTime);
+  const yesterdayColumnIndex = columnIndexes[yesterdayDate];
+
+  if (yesterdayColumnIndex !== undefined) {
+    const yesterdayAttendanceCell = sheet.getRange(personRowNumber, yesterdayColumnIndex + 1);
+    const yesterdayCellValue = yesterdayAttendanceCell.getValue();
+
+    if (yesterdayCellValue !== '' && yesterdayCellValue !== null) {
+      const yesterdayAttendanceData = parseAttendanceData(yesterdayCellValue, personRowNumber);
+
+      if (
+        yesterdayAttendanceData &&
+        yesterdayAttendanceData['sign in time'] &&
+        !yesterdayAttendanceData['sign out time']
+      ) {
+        recordPreviousDaySignOut(
+          personRowNumber,
+          yesterdayAttendanceCell,
+          yesterdayAttendanceData,
+          currentTime
+        );
+
+        return {
+          success: true,
+          message: `${person.name}, you were signed out for yesterday (${yesterdayDate}).`,
+        };
+      }
+    }
+  }
+
+  const attendanceCell = sheet.getRange(personRowNumber, todayColumnIndex + 1);
+  const entryStatus = recordAttendanceEntry(personRowNumber, attendanceCell);
+
+  if (entryStatus === 'signed-in') {
+    return { success: true, message: `${person.name}, you have been signed in.` };
+  }
+  if (entryStatus === 'signed-out') {
+    return { success: true, message: `${person.name}, you have been signed out.` };
+  }
+  return { success: false, error: `${person.name}, you have already signed in and out today.` };
 }
 
 /**
@@ -246,24 +231,14 @@ function applyLateSignInFormatting(attendanceCell, jsonText, signInTime) {
 function getNamesList() {
   const sheet = getAttendanceSheet();
   const columnIndexes = getColumnIndexes(sheet);
-  const nameColumnIndex = columnIndexes.Name;
 
-  if (nameColumnIndex === undefined) {
+  if (columnIndexes.Name === undefined) {
     return [];
   }
 
-  const lastRow = sheet.getLastRow();
+  const roster = getRoster(sheet, columnIndexes);
 
-  if (lastRow < 2) {
-    return [];
-  }
-
-  const values = sheet.getRange(2, nameColumnIndex + 1, lastRow - 1, 1).getValues();
-
-  const names = values
-    .map((row) => String(row[0]).trim())
-    .filter((name) => name !== '');
-
+  const names = Object.keys(roster.byLowerName).map((key) => roster.byLowerName[key].name);
   names.sort((a, b) => a.localeCompare(b));
 
   return names;

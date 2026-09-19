@@ -77,6 +77,10 @@ function runBirthdayCodeGeneration(sheet, columnIndexes) {
     generatedNames.push(name);
   }
 
+  if (generatedNames.length > 0) {
+    invalidateRosterCache();
+  }
+
   return {
     success: true,
     message:
