@@ -1,3 +1,15 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body {
   font-family:
     -apple-system,
@@ -11,6 +23,7 @@ body {
   justify-content: center;
   min-height: 100vh;
   margin: 0;
+  padding: 16px;
 }
 
 .app {
@@ -27,6 +40,7 @@ body {
   border-radius: 8px;
   padding: 4px;
   width: 320px;
+  max-width: calc(100vw - 32px);
   box-sizing: border-box;
 }
 
@@ -58,8 +72,10 @@ body {
 
 .dashboard-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
   background: white;
   padding: 16px 20px;
   border-radius: 12px;
@@ -80,8 +96,19 @@ body {
 
 .dashboard-header-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 10px;
+}
+
+/* Below this, the header title and the two action buttons no longer
+   fit on one line — give the actions their own full-width row instead
+   of letting them bunch up under the title's left edge. */
+@media (max-width: 480px) {
+  .dashboard-header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 
 .dashboard-mode-tabs {
@@ -330,6 +357,7 @@ body {
   border-radius: 12px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   width: 320px;
+  max-width: calc(100vw - 32px);
 }
 
 h1 {
@@ -360,7 +388,8 @@ select {
   box-sizing: border-box;
   border: 1px solid #ccc;
   border-radius: 6px;
-  font-size: 15px;
+  /* 16px minimum stops iOS Safari from auto-zooming the page on focus. */
+  font-size: 16px;
   background: white;
   font-family: inherit;
 }
