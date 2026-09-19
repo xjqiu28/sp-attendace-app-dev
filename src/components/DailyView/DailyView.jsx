@@ -1,5 +1,6 @@
-import DailySummary from './DailySummary.jsx';
-import AttendanceCard from './AttendanceCard.jsx';
+import DailySummary from '../DailySummary/DailySummary.jsx';
+import AttendanceCard from '../AttendanceCard/AttendanceCard.jsx';
+import '@/styles/CardGrid.scss';
 
 export default function DailyView({ data }) {
   return (

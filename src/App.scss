@@ -1,0 +1,41 @@
+@use '@/styles/variables' as vars;
+
+.app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+// Also reused, unmodified, by the director dashboard's mode tabs/log-out
+// button (DirectorDashboard.scss) and the generate-codes button
+// (GenerateCodesButton.scss) — both import this file for it.
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: vars.$color-tab-bg;
+  border-radius: 8px;
+  padding: 4px;
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
+}
+
+.tab {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: vars.$color-text-secondary;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 0;
+
+  &.active {
+    background: vars.$color-surface;
+    color: vars.$color-primary;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+}

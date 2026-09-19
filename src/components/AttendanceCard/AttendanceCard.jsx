@@ -1,3 +1,5 @@
+import './AttendanceCard.scss';
+
 const STATUS_CLASS = {
   Complete: 'status-complete',
   'Signed In': 'status-signed-in',

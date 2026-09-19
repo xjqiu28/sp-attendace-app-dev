@@ -1,0 +1,28 @@
+@use '@/styles/variables' as vars;
+
+.week-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.week-button {
+  width: auto;
+  flex: none;
+  margin-top: 0;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  background: vars.$color-surface;
+  color: vars.$color-text-secondary;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+
+  &.active {
+    background: vars.$color-primary;
+    color: vars.$color-surface;
+  }
+}

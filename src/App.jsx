@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import AttendanceForm from './components/AttendanceForm.jsx';
-import DirectorDashboard from './components/DirectorDashboard.jsx';
+import AttendanceForm from './components/AttendanceForm/AttendanceForm.jsx';
+import DirectorDashboard from './components/DirectorDashboard/DirectorDashboard.jsx';
 import useNames from './hooks/useNames.js';
+import './App.scss';
 
 // The name roster is fetched ONCE here and passed down to whichever
 // tab is active, instead of each tab fetching it independently —

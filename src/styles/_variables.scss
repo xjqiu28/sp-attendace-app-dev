@@ -1,0 +1,33 @@
+// Shared design tokens. @use this partial from any component's .scss file
+// rather than repeating a hex code or shadow value — e.g.:
+//   @use '@/styles/variables' as vars;
+//   color: vars.$color-primary;
+
+// Brand
+$color-primary: #1a73e8;
+
+// Text
+$color-text: #444;
+$color-text-secondary: #555;
+$color-text-muted: #888;
+$color-text-faint: #999;
+$color-text-disabled: #777;
+
+// Status
+$color-success-bg: #e6f4ea;
+$color-success-text: #2e7d32;
+$color-warning-bg: #fff4e5;
+$color-warning-text: #b26a00;
+$color-error-bg: #fdecea;
+$color-error-text: #c62828;
+$color-neutral-bg: #f1f1f1;
+
+// Surfaces
+$color-app-bg: #f4f6f8;
+$color-surface: #fff;
+$color-tab-bg: #e3e6ea;
+$color-border: #ccc;
+$color-border-light: #eee;
+
+// Shadow
+$shadow-card: 0 2px 12px rgba(0, 0, 0, 0.08);

@@ -1,3 +1,5 @@
+import './DailySummary.scss';
+
 function SummaryNameList({ title, items, emptyText, renderItem }) {
   return (
     <div className="summary-list">

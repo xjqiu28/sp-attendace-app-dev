@@ -1,3 +1,5 @@
+import './WeekSelector.scss';
+
 export default function WeekSelector({ availableWeeks, currentWeekNumber, onSelect }) {
   if (!availableWeeks || availableWeeks.length === 0) {
     return null;

@@ -1,5 +1,6 @@
-import WeekSelector from './WeekSelector.jsx';
-import WeeklyTotalCard from './WeeklyTotalCard.jsx';
+import WeekSelector from '../WeekSelector/WeekSelector.jsx';
+import WeeklyTotalCard from '../WeeklyTotalCard/WeeklyTotalCard.jsx';
+import '@/styles/CardGrid.scss';
 
 export default function WeeklyView({ data, onWeekChange }) {
   return (

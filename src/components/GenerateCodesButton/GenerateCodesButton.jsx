@@ -1,3 +1,6 @@
+import '@/App.scss'; // .tab, reused here for the base button look
+import './GenerateCodesButton.scss';
+
 export default function GenerateCodesButton({ state, onClick }) {
   return (
     <div className="generate-codes">

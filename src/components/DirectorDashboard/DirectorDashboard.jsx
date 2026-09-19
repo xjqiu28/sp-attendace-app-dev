@@ -1,9 +1,11 @@
-import useDirectorDashboard from '../hooks/useDirectorDashboard.js';
-import LoginCard from './LoginCard.jsx';
-import StatusMessage from './StatusMessage.jsx';
-import DailyView from './DailyView.jsx';
-import WeeklyView from './WeeklyView.jsx';
-import GenerateCodesButton from './GenerateCodesButton.jsx';
+import useDirectorDashboard from '../../hooks/useDirectorDashboard.js';
+import LoginCard from '../LoginCard/LoginCard.jsx';
+import StatusMessage from '../StatusMessage/StatusMessage.jsx';
+import DailyView from '../DailyView/DailyView.jsx';
+import WeeklyView from '../WeeklyView/WeeklyView.jsx';
+import GenerateCodesButton from '../GenerateCodesButton/GenerateCodesButton.jsx';
+import '@/App.scss'; // .tab, reused here for the mode tabs and log-out button
+import './DirectorDashboard.scss';
 
 export default function DirectorDashboard({ names, namesLoading, namesLoadFailed }) {
   const {

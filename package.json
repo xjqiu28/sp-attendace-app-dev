@@ -19,6 +19,7 @@
   "devDependencies": {
     "@google/clasp": "^2.4.2",
     "@vitejs/plugin-react": "^4.3.1",
+    "sass": "^1.104.1",
     "vite": "^5.4.8"
   }
 }

@@ -1,0 +1,67 @@
+@use '@/styles/variables' as vars;
+
+.daily-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.summary-stat,
+.summary-list {
+  background: vars.$color-surface;
+  padding: 16px 18px;
+  border-radius: 12px;
+  box-shadow: vars.$shadow-card;
+}
+
+.summary-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  &-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: vars.$color-primary;
+  }
+
+  &-label {
+    font-size: 12px;
+    color: vars.$color-text-muted;
+    margin-top: 4px;
+  }
+}
+
+.summary-list {
+  &-title {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: vars.$color-text-secondary;
+  }
+
+  &-empty {
+    margin: 0;
+    font-size: 12px;
+    color: vars.$color-text-faint;
+  }
+
+  &-items {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 13px;
+    color: vars.$color-text;
+    max-height: 140px;
+    overflow-y: auto;
+
+    li {
+      padding: 2px 0;
+    }
+  }
+
+  &-detail {
+    color: vars.$color-text-faint;
+    font-size: 12px;
+  }
+}

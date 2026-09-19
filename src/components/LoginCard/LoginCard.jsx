@@ -1,5 +1,6 @@
-import NameAndCodeFields from './NameAndCodeFields.jsx';
-import StatusMessage from './StatusMessage.jsx';
+import NameAndCodeFields from '../NameAndCodeFields/NameAndCodeFields.jsx';
+import StatusMessage from '../StatusMessage/StatusMessage.jsx';
+import './LoginCard.scss';
 
 // Shared name + personal code login card, used by both the
 // attendance form and the director dashboard's sign-in screen.

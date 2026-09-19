@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { submitAttendance } from '../api/attendanceApi.js';
-import LoginCard from './LoginCard.jsx';
+import { submitAttendance } from '../../api/attendanceApi.js';
+import LoginCard from '../LoginCard/LoginCard.jsx';
 
 export default function AttendanceForm({ names, namesLoading, namesLoadFailed }) {
   const [selectedName, setSelectedName] = useState('');

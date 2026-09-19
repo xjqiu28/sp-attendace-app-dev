@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import '@/components/AttendanceCard/AttendanceCard.scss';
+import './WeeklyTotalCard.scss';
 
 // Backend stores times as "M/d/yyyy h:mm:ss a" — pull out just the
 // "h:mm a" part for a cleaner display (e.g. "5:38 PM").
