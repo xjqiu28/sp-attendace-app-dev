@@ -38,4 +38,13 @@ jobs:
 
       - run: npx clasp push --force
 
-      - run: npx clasp deploy --deploymentId "$CLASP_DEPLOYMENT_ID" --description "Auto-deploy from ${{ github.sha }}"
+      - name: Get commit subject
+        id: commit
+        run: echo "subject=$(git log -1 --pretty=%s)" >> "$GITHUB_OUTPUT"
+
+      # Apps Script deployment descriptions are capped at 165 characters;
+      # trim so a long commit title still deploys instead of failing.
+      - name: Deploy
+        env:
+          DEPLOY_DESCRIPTION: ${{ steps.commit.outputs.subject }}
+        run: npx clasp deploy --deploymentId "$CLASP_DEPLOYMENT_ID" --description "${DEPLOY_DESCRIPTION:0:160}"
