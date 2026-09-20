@@ -20,29 +20,34 @@ function formatTimeOnly(dateTimeString) {
   return `${hour}:${minute} ${parts[2]}`;
 }
 
-export default function WeeklyTotalCard({ entry, viewMode, weekStart, onApprove }) {
+export default function WeeklyTotalCard({ entry, viewMode, weekStart, onApprove, onUnapprove }) {
   const [expanded, setExpanded] = useState(false);
   const [approving, setApproving] = useState(false);
   const [approveStatus, setApproveStatus] = useState(null); // { text, type }
 
+  // Approving/unapproving live inside the same clickable card that
+  // toggles the day breakdown open/closed — stopPropagation keeps a
+  // click on either button from also expanding/collapsing it.
   async function handleApprove(event) {
-    // Approving lives inside the same clickable card that toggles the
-    // day breakdown open/closed — without this it would also expand.
     event.stopPropagation();
+    await runApprovalAction(() => onApprove(entry.name, weekStart));
+  }
 
+  async function handleUnapprove(event) {
+    event.stopPropagation();
+    await runApprovalAction(() => onUnapprove(entry.name, weekStart));
+  }
+
+  async function runApprovalAction(action) {
     setApproving(true);
-    setApproveStatus({ text: 'Approving...', type: '' });
+    setApproveStatus(null);
 
-    const result = await onApprove(entry.name, weekStart);
+    const result = await action();
 
-    if (result.success) {
-      // The badge itself (entry.approval, updated by the parent) already
-      // shows "Approved" — no need for a separate lingering status line.
-      setApproveStatus(null);
-    } else {
-      setApproveStatus({ text: result.error, type: 'error' });
-    }
-
+    // On success, the badge/detail itself (entry.approval, updated by
+    // the parent) already reflects the new state — no separate status
+    // line needed. Only show one for a failure.
+    setApproveStatus(result.success ? null : { text: result.error, type: 'error' });
     setApproving(false);
   }
 
@@ -83,9 +88,14 @@ export default function WeeklyTotalCard({ entry, viewMode, weekStart, onApprove 
           <span className="weekly-approval-cap">Cap: {entry.maxWeeklyHours} hrs/week</span>
 
           {entry.approval ? (
-            <span className="weekly-approval-detail">
-              Approved by {entry.approval.approvedBy} on {entry.approval.approvedAt}
-            </span>
+            <>
+              <span className="weekly-approval-detail">
+                Approved by {entry.approval.approvedBy} on {entry.approval.approvedAt}
+              </span>
+              <button type="button" className="weekly-approval-undo" onClick={handleUnapprove} disabled={approving}>
+                {approving ? 'Undoing...' : 'Unapprove'}
+              </button>
+            </>
           ) : (
             <button type="button" onClick={handleApprove} disabled={approving}>
               {approving ? 'Approving...' : 'Approve'}

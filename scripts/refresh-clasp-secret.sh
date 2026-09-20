@@ -38,6 +38,22 @@ fi
 
 npx clasp login "${creds_args[@]}"
 
+# The workflow always places this content at the GLOBAL ~/.clasprc.json
+# path in CI, regardless of where clasp wrote it here. A file clasp
+# wrote in --creds ("local") mode carries isLocalCreds:true, and clasp
+# rejects that combination — local-shaped content at the global path —
+# outright, failing with "No access, refresh token, API key or refresh
+# handler callback is set." even though the token itself is valid.
+# Normalize it before uploading so this always works either way.
+python3 -c "
+import json
+with open('$clasprc_path') as f:
+    data = json.load(f)
+data['isLocalCreds'] = False
+with open('$clasprc_path', 'w') as f:
+    json.dump(data, f)
+"
+
 base64 -i "$clasprc_path" | gh secret set CLASPRC_JSON
 
 echo "CLASPRC_JSON secret updated. Re-run the failed 'Deploy Apps Script' workflow to confirm."

@@ -153,8 +153,10 @@ number in it to cap their week. In the director dashboard's Weekly
 tab, going over that cap shows a "Needs Approval" badge and an
 Approve button; clicking it records who approved it and when (in a
 `Week Approvals` tab, created automatically) and the badge switches to
-"Approved". This is a one-time approval per (person, week) — editing
-that week's hours afterward doesn't automatically un-approve it.
+"Approved" with an Unapprove button to reverse it (removes that row
+from `Week Approvals`). Approving doesn't lock anything in permanently
+— editing that week's hours afterward doesn't automatically
+un-approve it, so use Unapprove if a week needs a second look.
 
 ### Weekly timesheet email
 

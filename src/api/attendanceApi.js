@@ -109,6 +109,20 @@ export async function approveWeek(name, code, targetName, weekStart) {
   return response.json();
 }
 
+// Removes a previously recorded approval for targetName's weekStart, if
+// any — a no-op success if there wasn't one. Director-only. Returns
+// { success: true, message } or { success: false, error }. Throws
+// (with err.name === 'AbortError' on timeout) on network failure.
+export async function unapproveWeek(name, code, targetName, weekStart) {
+  const response = await fetchWithTimeout(WEB_APP_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'unapproveWeek', name, code, targetName, weekStart }),
+  });
+
+  return response.json();
+}
+
 // Fills in a Personal Code (birthday as MMDDYYYY) on the sheet for
 // every roster name that doesn't have one yet; existing codes are
 // never touched. Returns { success: true, message, generatedNames,

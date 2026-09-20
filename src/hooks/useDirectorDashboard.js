@@ -5,6 +5,7 @@ import {
   getEditDayView,
   updateAttendanceEntry,
   approveWeek,
+  unapproveWeek,
 } from '../api/attendanceApi.js';
 import { toBackendDate, toBackendDateTime, todayDateInputValue } from '../utils/dateTimeFormat.js';
 
@@ -238,6 +239,28 @@ export default function useDirectorDashboard() {
     return result;
   }
 
+  // Same always-resolves pattern as handleApproveWeek.
+  async function handleUnapproveWeek(targetName, weekStart) {
+    let result;
+
+    try {
+      result = await unapproveWeek(credentials.name, credentials.code, targetName, weekStart);
+    } catch (err) {
+      return { success: false, error: networkErrorText(err) };
+    }
+
+    if (result.success) {
+      setDashboardData((previous) => ({
+        ...previous,
+        entries: previous.entries.map((entry) =>
+          entry.name === targetName ? { ...entry, approval: null } : entry
+        ),
+      }));
+    }
+
+    return result;
+  }
+
   function handleLogOut() {
     setCredentials(null);
     setDashboardData(null);
@@ -294,5 +317,6 @@ export default function useDirectorDashboard() {
     handleEditDateChange,
     handleSaveEntry,
     handleApproveWeek,
+    handleUnapproveWeek,
   };
 }

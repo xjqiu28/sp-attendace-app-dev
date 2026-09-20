@@ -27,6 +27,8 @@
   button {
     width: auto;
     margin-top: 0;
+    padding: 6px 14px;
+    font-size: 12px;
   }
 
   .status {
@@ -50,6 +52,13 @@
   &-detail {
     font-size: 12px;
     color: vars.$color-text;
+  }
+
+  // Secondary/muted, unlike the primary blue Approve button — this is
+  // an undo action, not the main call to action.
+  &-undo {
+    background: vars.$color-neutral-bg;
+    color: vars.$color-text-secondary;
   }
 }
 

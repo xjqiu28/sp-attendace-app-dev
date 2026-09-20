@@ -2,7 +2,7 @@ import WeekSelector from '../WeekSelector/WeekSelector.jsx';
 import WeeklyTotalCard from '../WeeklyTotalCard/WeeklyTotalCard.jsx';
 import '@/styles/CardGrid.scss';
 
-export default function WeeklyView({ data, onWeekChange, viewMode, onApproveWeek }) {
+export default function WeeklyView({ data, onWeekChange, viewMode, onApproveWeek, onUnapproveWeek }) {
   return (
     <>
       <WeekSelector
@@ -19,6 +19,7 @@ export default function WeeklyView({ data, onWeekChange, viewMode, onApproveWeek
             viewMode={viewMode}
             weekStart={data.weekStart}
             onApprove={onApproveWeek}
+            onUnapprove={onUnapproveWeek}
           />
         ))}
       </div>

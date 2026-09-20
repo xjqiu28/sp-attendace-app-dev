@@ -36,6 +36,7 @@ export default function DirectorDashboard({ names, namesLoading, namesLoadFailed
     handleEditDateChange,
     handleSaveEntry,
     handleApproveWeek,
+    handleUnapproveWeek,
   } = useDirectorDashboard();
 
   if (!credentials) {
@@ -145,6 +146,7 @@ export default function DirectorDashboard({ names, namesLoading, namesLoadFailed
               onWeekChange={handleWeekChange}
               viewMode={viewMode}
               onApproveWeek={handleApproveWeek}
+              onUnapproveWeek={handleUnapproveWeek}
             />
           )}
         </>
