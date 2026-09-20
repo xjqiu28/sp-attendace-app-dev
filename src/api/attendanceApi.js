@@ -56,6 +56,43 @@ export async function getDirectorView(name, code, view = 'daily', weekNumber) {
   return response.json();
 }
 
+// Returns { success: true, date, entries: [{ name, signInTime,
+// signOutTime }] } for every roster name (blank if nothing recorded
+// yet) for one specific date. Director-only, read-only. Throws (with
+// err.name === 'AbortError' on timeout) on network failure.
+export async function getEditDayView(name, code, date) {
+  const response = await fetchWithTimeout(WEB_APP_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'editDayView', name, code, date }),
+  });
+
+  return response.json();
+}
+
+// Overwrites one person's sign-in/sign-out for one date — pass '' for
+// either time to clear it (both blank clears the entry entirely).
+// Director-only. Returns { success: true, message } or { success:
+// false, error }. Throws (with err.name === 'AbortError' on timeout)
+// on network failure.
+export async function updateAttendanceEntry(name, code, targetName, date, signInTime, signOutTime) {
+  const response = await fetchWithTimeout(WEB_APP_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({
+      action: 'updateAttendanceEntry',
+      name,
+      code,
+      targetName,
+      date,
+      signInTime,
+      signOutTime,
+    }),
+  });
+
+  return response.json();
+}
+
 // Fills in a Personal Code (birthday as MMDDYYYY) on the sheet for
 // every roster name that doesn't have one yet; existing codes are
 // never touched. Returns { success: true, message, generatedNames,

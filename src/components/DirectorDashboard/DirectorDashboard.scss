@@ -68,7 +68,9 @@
     }
   }
 
+  // Sized for 3 tabs (Daily / Weekly / Edit Day); inherits .tabs'
+  // own mobile max-width clamp from App.scss.
   &-mode-tabs {
-    width: 200px;
+    width: min(100%, 320px);
   }
 }

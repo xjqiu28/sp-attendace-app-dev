@@ -3,6 +3,7 @@ import LoginCard from '../LoginCard/LoginCard.jsx';
 import StatusMessage from '../StatusMessage/StatusMessage.jsx';
 import DailyView from '../DailyView/DailyView.jsx';
 import WeeklyView from '../WeeklyView/WeeklyView.jsx';
+import EditDayView from '../EditDayView/EditDayView.jsx';
 import GenerateCodesButton from '../GenerateCodesButton/GenerateCodesButton.jsx';
 import '@/App.scss'; // .tab, reused here for the mode tabs and log-out button
 import './DirectorDashboard.scss';
@@ -21,11 +22,17 @@ export default function DirectorDashboard({ names, namesLoading, namesLoadFailed
     dashboardLoading,
     dashboardError,
     generateCodesState,
+    editDate,
+    editDayData,
+    editDayLoading,
+    editDayError,
     handleSubmit,
     handleModeChange,
     handleWeekChange,
     handleLogOut,
     handleGenerateCodes,
+    handleEditDateChange,
+    handleSaveEntry,
   } = useDirectorDashboard();
 
   if (!credentials) {
@@ -51,7 +58,9 @@ export default function DirectorDashboard({ names, namesLoading, namesLoadFailed
   const heading =
     mode === 'daily'
       ? `Attendance — ${dashboardData?.date || ''}`
-      : `Weekly Totals — Week ${dashboardData?.weekNumber || ''}`;
+      : mode === 'weekly'
+        ? `Weekly Totals — Week ${dashboardData?.weekNumber || ''}`
+        : 'Edit Day';
 
   return (
     <div className="dashboard">
@@ -81,16 +90,36 @@ export default function DirectorDashboard({ names, namesLoading, namesLoadFailed
         >
           Weekly
         </button>
+        <button
+          type="button"
+          className={mode === 'edit' ? 'tab active' : 'tab'}
+          onClick={() => handleModeChange('edit')}
+        >
+          Edit Day
+        </button>
       </div>
 
-      {dashboardError && <StatusMessage text={dashboardError} type="error" />}
-
-      {dashboardLoading ? (
-        <StatusMessage text="Loading..." type="" />
-      ) : mode === 'daily' ? (
-        <DailyView data={dashboardData} />
+      {mode === 'edit' ? (
+        <EditDayView
+          date={editDate}
+          onDateChange={handleEditDateChange}
+          data={editDayData}
+          loading={editDayLoading}
+          error={editDayError}
+          onSaveEntry={handleSaveEntry}
+        />
       ) : (
-        <WeeklyView data={dashboardData} onWeekChange={handleWeekChange} />
+        <>
+          {dashboardError && <StatusMessage text={dashboardError} type="error" />}
+
+          {dashboardLoading ? (
+            <StatusMessage text="Loading..." type="" />
+          ) : mode === 'daily' ? (
+            <DailyView data={dashboardData} />
+          ) : (
+            <WeeklyView data={dashboardData} onWeekChange={handleWeekChange} />
+          )}
+        </>
       )}
     </div>
   );

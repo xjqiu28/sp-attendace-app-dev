@@ -1,0 +1,13 @@
+.edit-day {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  &-date-field {
+    max-width: 220px;
+
+    label {
+      margin-top: 0;
+    }
+  }
+}

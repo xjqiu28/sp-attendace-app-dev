@@ -1,5 +1,11 @@
 import { useState } from 'react';
-import { getDirectorView, generatePersonalCodes } from '../api/attendanceApi.js';
+import {
+  getDirectorView,
+  generatePersonalCodes,
+  getEditDayView,
+  updateAttendanceEntry,
+} from '../api/attendanceApi.js';
+import { toBackendDate, toBackendDateTime, todayDateInputValue } from '../utils/dateTimeFormat.js';
 
 function networkErrorText(err) {
   return err.name === 'AbortError'
@@ -18,7 +24,7 @@ export default function useDirectorDashboard() {
   // Once logged in, the validated credentials are kept here so the
   // Daily/Weekly toggle and week picker can re-fetch without asking again.
   const [credentials, setCredentials] = useState(null); // { name, code }
-  const [mode, setMode] = useState('daily'); // 'daily' | 'weekly'
+  const [mode, setMode] = useState('daily'); // 'daily' | 'weekly' | 'edit'
   const [dashboardData, setDashboardData] = useState(null);
   const [dashboardLoading, setDashboardLoading] = useState(false);
   const [dashboardError, setDashboardError] = useState(null);
@@ -28,6 +34,13 @@ export default function useDirectorDashboard() {
     message: null,
     error: null,
   });
+
+  // 'Edit Day' mode's own date + data, kept separate from the
+  // daily/weekly dashboardData above since it's fetched independently.
+  const [editDate, setEditDate] = useState(todayDateInputValue()); // <input type="date"> value
+  const [editDayData, setEditDayData] = useState(null);
+  const [editDayLoading, setEditDayLoading] = useState(false);
+  const [editDayError, setEditDayError] = useState(null);
 
   async function loadView(activeCredentials, nextMode, weekNumber) {
     setDashboardLoading(true);
@@ -90,7 +103,12 @@ export default function useDirectorDashboard() {
     }
 
     setMode(newMode);
-    loadView(credentials, newMode);
+
+    if (newMode === 'edit') {
+      loadEditDay(credentials, editDate);
+    } else {
+      loadView(credentials, newMode);
+    }
   }
 
   function handleWeekChange(weekNumber) {
@@ -101,11 +119,78 @@ export default function useDirectorDashboard() {
     loadView(credentials, 'weekly', weekNumber);
   }
 
+  async function loadEditDay(activeCredentials, dateInputValue) {
+    setEditDayLoading(true);
+    setEditDayError(null);
+
+    try {
+      const result = await getEditDayView(
+        activeCredentials.name,
+        activeCredentials.code,
+        toBackendDate(dateInputValue)
+      );
+
+      if (result.success) {
+        setEditDayData(result);
+      } else {
+        setEditDayError(result.error);
+      }
+    } catch (err) {
+      setEditDayError(networkErrorText(err));
+    } finally {
+      setEditDayLoading(false);
+    }
+  }
+
+  function handleEditDateChange(newDateInputValue) {
+    setEditDate(newDateInputValue);
+    loadEditDay(credentials, newDateInputValue);
+  }
+
+  // Always resolves (never rejects) with { success, message } or
+  // { success: false, error } — including on a network failure — so
+  // the calling card can show its own inline feedback without needing
+  // its own try/catch.
+  async function handleSaveEntry(targetName, signInInputValue, signOutInputValue) {
+    const signInTime = toBackendDateTime(editDate, signInInputValue);
+    const signOutTime = toBackendDateTime(editDate, signOutInputValue);
+
+    let result;
+
+    try {
+      result = await updateAttendanceEntry(
+        credentials.name,
+        credentials.code,
+        targetName,
+        toBackendDate(editDate),
+        signInTime,
+        signOutTime
+      );
+    } catch (err) {
+      return { success: false, error: networkErrorText(err) };
+    }
+
+    if (result.success) {
+      setEditDayData((previous) => ({
+        ...previous,
+        entries: previous.entries.map((entry) =>
+          entry.name === targetName
+            ? { ...entry, signInTime: signInTime || null, signOutTime: signOutTime || null }
+            : entry
+        ),
+      }));
+    }
+
+    return result;
+  }
+
   function handleLogOut() {
     setCredentials(null);
     setDashboardData(null);
     setCode('');
     setGenerateCodesState({ loading: false, message: null, error: null });
+    setEditDayData(null);
+    setEditDayError(null);
   }
 
   async function handleGenerateCodes() {
@@ -141,10 +226,16 @@ export default function useDirectorDashboard() {
     dashboardLoading,
     dashboardError,
     generateCodesState,
+    editDate,
+    editDayData,
+    editDayLoading,
+    editDayError,
     handleSubmit,
     handleModeChange,
     handleWeekChange,
     handleLogOut,
     handleGenerateCodes,
+    handleEditDateChange,
+    handleSaveEntry,
   };
 }
