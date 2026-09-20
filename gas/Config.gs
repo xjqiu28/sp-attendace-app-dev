@@ -38,3 +38,51 @@ const WEEK_APPROVALS_SHEET_NAME = 'Week Approvals';
 // WeeklyReport.gs). Leave blank ('') to skip emailing and only write
 // the report tab.
 const TIMESHEET_REPORT_EMAIL = 'wendy@occny.org';
+
+// Optional roster columns: a person's own scheduled shift, synced in
+// from the Applications sheet's "Time" column (see Applications.gs)
+// and used instead of SIGN_IN_CUTOFF_HOUR/AUTO_SIGN_OUT_HOUR for
+// anyone who has one. Stored as plain time-of-day text (e.g.
+// "9:00 AM"), not a full date, since the same schedule applies every
+// working day.
+const SCHEDULED_SIGN_IN_HEADER = 'Scheduled Sign In';
+const SCHEDULED_SIGN_OUT_HEADER = 'Scheduled Sign Out';
+
+// ===================================================================
+// APPLICATIONS (see Applications.gs)
+// ===================================================================
+// A separate spreadsheet from the attendance roster — deliberately:
+// it holds SSN/pay/tax-form status for applicants and staff, and this
+// script also runs a public, unauthenticated web app, so the two are
+// kept in different files rather than different tabs of the same one.
+//
+// One tab per year (a new one created each summer, old ones left
+// alone), named "<year> Applications" — e.g. "2026 Applications" —
+// so the code always finds the right one with no manual config change
+// needed year to year.
+//
+// PASTE_YOUR_APPLICATIONS_SHEET_ID_HERE: paste the ID from that
+// sheet's URL (the long string between /d/ and /edit).
+const APPLICATIONS_SHEET_ID = 'PASTE_YOUR_APPLICATIONS_SHEET_ID_HERE';
+
+const APPLICATIONS_TAB_SUFFIX = 'Applications';
+
+// Column headers on that sheet, exactly as they appear there.
+const APPLICATIONS_HEADERS = {
+  firstName: 'First Name',
+  lastName: 'Last Name',
+  title: 'Title',
+  dateInformation: 'Date Information',
+  time: 'Time',
+  rate: 'Rate',
+  email: 'Email',
+  sent: 'Sent',
+  paidHours: 'Paid Hours',
+  volunteerHours: 'Volunteer Hours',
+  missingDocuments: 'Missing Documents',
+  acceptDecline: 'Accept/Decline',
+  ss: 'SS',
+  w4Forms: 'W-4 Forms',
+  resignationEmailSent: 'Resignation Email Sent',
+  resignationLetters: 'Resignation Letters',
+};

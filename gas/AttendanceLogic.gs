@@ -70,7 +70,8 @@ function processAttendanceSubmission(submittedName, submittedPersonalCode) {
           personRowNumber,
           yesterdayAttendanceCell,
           yesterdayAttendanceData,
-          currentTime
+          currentTime,
+          person.signInSchedule
         );
 
         return {
@@ -82,7 +83,7 @@ function processAttendanceSubmission(submittedName, submittedPersonalCode) {
   }
 
   const attendanceCell = sheet.getRange(personRowNumber, todayColumnIndex + 1);
-  const entryStatus = recordAttendanceEntry(personRowNumber, attendanceCell);
+  const entryStatus = recordAttendanceEntry(personRowNumber, attendanceCell, person.signInSchedule);
 
   if (entryStatus === 'signed-in') {
     return { success: true, message: `${person.name}, you have been signed in.` };
@@ -97,16 +98,18 @@ function processAttendanceSubmission(submittedName, submittedPersonalCode) {
  * Records either sign-in or sign-out for today's attendance cell.
  * Returns 'signed-in' | 'signed-out' | 'already-complete'.
  *
+ * signInSchedule is the person's own { hour, minute } (from
+ * SCHEDULED_SIGN_IN_HEADER), or null to use SIGN_IN_CUTOFF_HOUR.
+ *
  * First entry:
  * - Saves sign-in time.
- * - If after SIGN_IN_CUTOFF_HOUR, colors only the sign-in label and
- *   time red.
+ * - If after the cutoff, colors only the sign-in label and time red.
  *
  * Second entry:
  * - Saves sign-out time.
  * - Calculates formatted and decimal total hours.
  */
-function recordAttendanceEntry(personRowNumber, attendanceCell) {
+function recordAttendanceEntry(personRowNumber, attendanceCell, signInSchedule) {
   const currentTime = new Date();
   const existingCellValue = attendanceCell.getValue();
 
@@ -121,7 +124,7 @@ function recordAttendanceEntry(personRowNumber, attendanceCell) {
 
     attendanceCell.setValue(signInJsonText);
 
-    if (isLateSignIn(currentTime)) {
+    if (isLateSignIn(currentTime, signInSchedule)) {
       applyLateSignInFormatting(attendanceCell, signInJsonText, signInTime);
     }
 
@@ -138,7 +141,7 @@ function recordAttendanceEntry(personRowNumber, attendanceCell) {
     return 'already-complete';
   }
 
-  recordSignOutForAttendanceCell(personRowNumber, attendanceCell, attendanceData, currentTime);
+  recordSignOutForAttendanceCell(personRowNumber, attendanceCell, attendanceData, currentTime, signInSchedule);
 
   return 'signed-out';
 }
@@ -146,7 +149,7 @@ function recordAttendanceEntry(personRowNumber, attendanceCell) {
 /**
  * Records today's submission as the previous day's sign-out.
  */
-function recordPreviousDaySignOut(personRowNumber, attendanceCell, attendanceData, currentTime) {
+function recordPreviousDaySignOut(personRowNumber, attendanceCell, attendanceData, currentTime, signInSchedule) {
   const signOutTime = formatDateTime(currentTime);
 
   const signInDate = parseFormattedDateTime(attendanceData['sign in time']);
@@ -162,7 +165,7 @@ function recordPreviousDaySignOut(personRowNumber, attendanceCell, attendanceDat
   };
 
   const reorderedJsonText = JSON.stringify(reorderedAttendanceData);
-  const signInWasLate = isLateSignIn(signInDate);
+  const signInWasLate = isLateSignIn(signInDate, signInSchedule);
 
   if (signInWasLate) {
     applyLateSignInFormatting(attendanceCell, reorderedJsonText, attendanceData['sign in time']);
@@ -178,7 +181,8 @@ function recordSignOutForAttendanceCell(
   personRowNumber,
   attendanceCell,
   attendanceData,
-  currentTime
+  currentTime,
+  signInSchedule
 ) {
   const signOutTime = formatDateTime(currentTime);
 
@@ -195,7 +199,7 @@ function recordSignOutForAttendanceCell(
   };
 
   const reorderedJsonText = JSON.stringify(reorderedAttendanceData);
-  const signInWasLate = isLateSignIn(signInDate);
+  const signInWasLate = isLateSignIn(signInDate, signInSchedule);
 
   if (signInWasLate) {
     applyLateSignInFormatting(attendanceCell, reorderedJsonText, attendanceData['sign in time']);
@@ -235,9 +239,11 @@ function applyLateSignInFormatting(attendanceCell, jsonText, signInTime) {
  * - Both present: total hours are recalculated, matching a normal
  *   completed day.
  * Late formatting is reapplied/removed based on the (possibly edited)
- * sign-in time, exactly as a live submission would.
+ * sign-in time, exactly as a live submission would. signInSchedule is
+ * the person's own { hour, minute } (SCHEDULED_SIGN_IN_HEADER), or
+ * null/omitted to use SIGN_IN_CUTOFF_HOUR.
  */
-function writeAttendanceCell(attendanceCell, signInTime, signOutTime) {
+function writeAttendanceCell(attendanceCell, signInTime, signOutTime, signInSchedule) {
   if (!signInTime && !signOutTime) {
     attendanceCell.setValue('');
     return;
@@ -262,7 +268,7 @@ function writeAttendanceCell(attendanceCell, signInTime, signOutTime) {
 
   const jsonText = JSON.stringify(attendanceData);
 
-  if (isLateSignIn(parseFormattedDateTime(signInTime))) {
+  if (isLateSignIn(parseFormattedDateTime(signInTime), signInSchedule)) {
     applyLateSignInFormatting(attendanceCell, jsonText, signInTime);
   } else {
     attendanceCell.setValue(jsonText);

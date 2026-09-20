@@ -7,7 +7,10 @@
  * signed in today but never signed out — recomputing total hours and
  * the late-sign-in flag the same way a normal sign-out would, via
  * writeAttendanceCell (AttendanceLogic.gs), shared with the
- * self-service flow and the director's Edit Day tool.
+ * self-service flow and the director's Edit Day tool. Anyone with
+ * their own SCHEDULED_SIGN_OUT_HEADER (synced in from the Applications
+ * sheet — see Applications.gs) gets signed out at their own scheduled
+ * time instead of the shared default.
  *
  * ONE-TIME SETUP: run createAutoSignOutTrigger() once (select it in
  * the function dropdown at the top of the Apps Script editor, click
@@ -33,10 +36,7 @@ function autoSignOutStragglers() {
     return; // nobody signed in today at all — no column, nothing to do
   }
 
-  const cutoffTime = new Date(currentTime);
-  cutoffTime.setHours(AUTO_SIGN_OUT_HOUR, AUTO_SIGN_OUT_MINUTE, 0, 0);
-  const cutoffTimeText = formatDateTime(cutoffTime);
-
+  const roster = getRoster(sheet, columnIndexes);
   const lastRow = sheet.getLastRow();
 
   for (let personRowNumber = 2; personRowNumber <= lastRow; personRowNumber++) {
@@ -59,13 +59,30 @@ function autoSignOutStragglers() {
       continue; // no sign-in recorded, or already signed out
     }
 
+    const person = roster.byLowerName[name.toLowerCase()];
+    const signOutSchedule = person ? person.signOutSchedule : null;
+
+    const cutoffTime = new Date(currentTime);
+
+    if (signOutSchedule) {
+      cutoffTime.setHours(signOutSchedule.hour, signOutSchedule.minute, 0, 0);
+    } else {
+      cutoffTime.setHours(AUTO_SIGN_OUT_HOUR, AUTO_SIGN_OUT_MINUTE, 0, 0);
+    }
+
     const signInDate = parseFormattedDateTime(attendanceData['sign in time']);
 
     if (signInDate >= cutoffTime) {
       continue; // signed in after the cutoff already passed — leave it alone
     }
 
-    writeAttendanceCell(attendanceCell, attendanceData['sign in time'], cutoffTimeText);
+    const cutoffTimeText = formatDateTime(cutoffTime);
+    writeAttendanceCell(
+      attendanceCell,
+      attendanceData['sign in time'],
+      cutoffTimeText,
+      person ? person.signInSchedule : null
+    );
   }
 }
 

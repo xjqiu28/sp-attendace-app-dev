@@ -111,7 +111,7 @@ function updateAttendanceEntry(submittedName, submittedPersonalCode, targetName,
   }
 
   const attendanceCell = sheet.getRange(person.row, dateColumnIndex + 1);
-  writeAttendanceCell(attendanceCell, signInTime, signOutTime);
+  writeAttendanceCell(attendanceCell, signInTime, signOutTime, person.signInSchedule);
 
   return { success: true, message: `Updated ${person.name}'s entry for ${dateString}.` };
 }

@@ -7,9 +7,9 @@
  * doPost/doGet. Everything they rely on lives in the other files in
  * this project (Config.gs, Utils.gs, AttendanceLogic.gs, RosterCache.gs,
  * DirectorView.gs, EditDay.gs, WeekApprovals.gs, AutoSignOut.gs,
- * WeeklyReport.gs, PersonalCodes.gs) — Apps Script treats every .gs
- * file in the project as one shared global scope, so splitting the
- * code up like this doesn't require any imports.
+ * Applications.gs, WeeklyReport.gs, PersonalCodes.gs) — Apps Script
+ * treats every .gs file in the project as one shared global scope, so
+ * splitting the code up like this doesn't require any imports.
  */
 
 /**
@@ -193,6 +193,12 @@ function doPost(e) {
       output = approveWeek(submittedName, submittedPersonalCode, data.targetName, data.weekStart);
     } else if (action === 'unapproveWeek') {
       output = unapproveWeek(submittedName, submittedPersonalCode, data.targetName, data.weekStart);
+    } else if (action === 'applicationsView') {
+      output = getApplicationsView(submittedName, submittedPersonalCode);
+    } else if (action === 'updateApplication') {
+      output = updateApplication(submittedName, submittedPersonalCode, data.targetEmail, data.updates);
+    } else if (action === 'syncScheduledTimes') {
+      output = syncScheduledTimes(submittedName, submittedPersonalCode);
     } else if (action === 'generateCodes') {
       output = generatePersonalCodesFromBirthdays(submittedName, submittedPersonalCode);
     } else {

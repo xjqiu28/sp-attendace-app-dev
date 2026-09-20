@@ -92,6 +92,7 @@ function getDirectorAttendanceView(submittedName, submittedPersonalCode, request
  */
 function buildDirectorAttendanceResult(columnIndexes, dataRows) {
   const nameColumnIndex = columnIndexes.Name;
+  const scheduledSignInColumnIndex = columnIndexes[SCHEDULED_SIGN_IN_HEADER];
   const dateToday = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'M/d/yyyy');
   const todayColumnIndex = columnIndexes[dateToday];
 
@@ -127,9 +128,13 @@ function buildDirectorAttendanceResult(columnIndexes, dataRows) {
           }
 
           if (signInTime) {
+            const signInSchedule =
+              scheduledSignInColumnIndex !== undefined
+                ? parseTimeOfDay(row[scheduledSignInColumnIndex])
+                : null;
             const parsedSignInTime = parseFormattedDateTime(signInTime);
-            isLate = isLateSignIn(parsedSignInTime);
-            lateBy = isLate ? getLateDuration(parsedSignInTime) : null;
+            isLate = isLateSignIn(parsedSignInTime, signInSchedule);
+            lateBy = isLate ? getLateDuration(parsedSignInTime, signInSchedule) : null;
           }
         }
       }

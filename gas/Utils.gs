@@ -108,21 +108,64 @@ function calculateTotalHours(signInDate, signOutDate) {
 }
 
 /**
- * Checks whether a sign-in occurred after the SIGN_IN_CUTOFF_HOUR.
+ * Parses a plain time-of-day string like "9:00 AM" into { hour,
+ * minute } (24-hour). Returns null if it isn't formatted that way —
+ * callers treat that the same as "no schedule set".
  */
-function isLateSignIn(signInDate) {
+function parseTimeOfDay(text) {
+  const match = String(text)
+    .trim()
+    .match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+
+  if (!match) {
+    return null;
+  }
+
+  let hour = Number(match[1]);
+  const minute = Number(match[2]);
+  const meridiem = match[3].toUpperCase();
+
+  if (meridiem === 'PM' && hour !== 12) {
+    hour += 12;
+  }
+  if (meridiem === 'AM' && hour === 12) {
+    hour = 0;
+  }
+
+  return { hour: hour, minute: minute };
+}
+
+/**
+ * Checks whether a sign-in occurred after its cutoff. Pass a specific
+ * person's own { hour, minute } schedule (see SCHEDULED_SIGN_IN_HEADER)
+ * to use that instead of the SIGN_IN_CUTOFF_HOUR default — omit it (or
+ * pass null) for anyone without one.
+ */
+function isLateSignIn(signInDate, scheduleOverride) {
   const cutoff = new Date(signInDate);
-  cutoff.setHours(SIGN_IN_CUTOFF_HOUR, 0, 0, 0);
+
+  if (scheduleOverride) {
+    cutoff.setHours(scheduleOverride.hour, scheduleOverride.minute, 0, 0);
+  } else {
+    cutoff.setHours(SIGN_IN_CUTOFF_HOUR, 0, 0, 0);
+  }
+
   return signInDate > cutoff;
 }
 
 /**
- * Returns how long after the SIGN_IN_CUTOFF_HOUR a sign-in occurred, or
- * null if it wasn't late. { hours, minutes, formatted }.
+ * Returns how long after the cutoff a sign-in occurred, or null if it
+ * wasn't late. { hours, minutes, formatted }. Same scheduleOverride as
+ * isLateSignIn.
  */
-function getLateDuration(signInDate) {
+function getLateDuration(signInDate, scheduleOverride) {
   const cutoff = new Date(signInDate);
-  cutoff.setHours(SIGN_IN_CUTOFF_HOUR, 0, 0, 0);
+
+  if (scheduleOverride) {
+    cutoff.setHours(scheduleOverride.hour, scheduleOverride.minute, 0, 0);
+  } else {
+    cutoff.setHours(SIGN_IN_CUTOFF_HOUR, 0, 0, 0);
+  }
 
   const millisecondsLate = signInDate.getTime() - cutoff.getTime();
 

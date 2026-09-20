@@ -7,7 +7,10 @@
  * Admin columns — but without caching, every request re-reads those
  * columns from scratch, and processAttendanceSubmission's old bulk
  * read pulled in every date column too, getting slower as the sheet
- * grows.
+ * grows. Also carries each person's own scheduled sign-in/out (see
+ * SCHEDULED_SIGN_IN_HEADER, Config.gs), since processAttendanceSubmission
+ * already looks a person up here and would otherwise need a second,
+ * separate read to get it.
  *
  * CacheService.getScriptCache() persists data server-side, shared by
  * every execution of this script — unlike a normal variable, which
@@ -15,9 +18,9 @@
  * environment. We use a short 5-minute TTL: long enough to skip
  * repeated reads for the same roster, short enough that a name added
  * or edited directly on the sheet shows up again on its own shortly
- * after. Anything that writes to Name/Personal Code/Admin should also
- * call invalidateRosterCache() so the change is visible immediately
- * instead of waiting out the TTL.
+ * after. Anything that writes to Name/Personal Code/Admin/the
+ * scheduled columns should also call invalidateRosterCache() so the
+ * change is visible immediately instead of waiting out the TTL.
  *
  * Cache values must be strings, so the roster is stored as a JSON
  * string and parsed back out on read.
@@ -28,8 +31,9 @@ const ROSTER_CACHE_TTL_SECONDS = 300; // 5 minutes
 
 /**
  * Returns { byLowerName: { [lowercasedName]: { name, row, personalCode,
- * isAdmin } } }. Rebuilt from the sheet on a cache miss, reused as-is
- * on a cache hit.
+ * isAdmin, signInSchedule, signOutSchedule } } }, where each schedule
+ * is { hour, minute } or null. Rebuilt from the sheet on a cache miss,
+ * reused as-is on a cache hit.
  */
 function getRoster(sheet, columnIndexes) {
   const cache = CacheService.getScriptCache();
@@ -52,6 +56,8 @@ function buildRosterFromSheet(sheet, columnIndexes) {
   const nameColumnIndex = columnIndexes.Name;
   const personalCodeColumnIndex = columnIndexes['Personal Code'];
   const adminColumnIndex = columnIndexes.Admin;
+  const scheduledSignInColumnIndex = columnIndexes[SCHEDULED_SIGN_IN_HEADER];
+  const scheduledSignOutColumnIndex = columnIndexes[SCHEDULED_SIGN_OUT_HEADER];
 
   const byLowerName = {};
 
@@ -75,6 +81,14 @@ function buildRosterFromSheet(sheet, columnIndexes) {
     adminColumnIndex !== undefined
       ? sheet.getRange(2, adminColumnIndex + 1, rowCount, 1).getValues()
       : null;
+  const scheduledSignIns =
+    scheduledSignInColumnIndex !== undefined
+      ? sheet.getRange(2, scheduledSignInColumnIndex + 1, rowCount, 1).getValues()
+      : null;
+  const scheduledSignOuts =
+    scheduledSignOutColumnIndex !== undefined
+      ? sheet.getRange(2, scheduledSignOutColumnIndex + 1, rowCount, 1).getValues()
+      : null;
 
   for (let i = 0; i < names.length; i++) {
     const name = String(names[i][0]).trim();
@@ -90,6 +104,8 @@ function buildRosterFromSheet(sheet, columnIndexes) {
       row: i + 2,
       personalCode: codes ? String(codes[i][0]).trim() : '',
       isAdmin: ['yes', 'true', 'y', '1'].indexOf(adminValue) !== -1,
+      signInSchedule: scheduledSignIns ? parseTimeOfDay(scheduledSignIns[i][0]) : null,
+      signOutSchedule: scheduledSignOuts ? parseTimeOfDay(scheduledSignOuts[i][0]) : null,
     };
   }
 
