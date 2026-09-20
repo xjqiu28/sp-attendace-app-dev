@@ -177,6 +177,17 @@ function doPost(e) {
         requestedView,
         data.weekNumber
       );
+    } else if (action === 'editDayView') {
+      output = getEditDayView(submittedName, submittedPersonalCode, data.date);
+    } else if (action === 'updateAttendanceEntry') {
+      output = updateAttendanceEntry(
+        submittedName,
+        submittedPersonalCode,
+        data.targetName,
+        data.date,
+        data.signInTime,
+        data.signOutTime
+      );
     } else if (action === 'generateCodes') {
       output = generatePersonalCodesFromBirthdays(submittedName, submittedPersonalCode);
     } else {

@@ -224,6 +224,52 @@ function applyLateSignInFormatting(attendanceCell, jsonText, signInTime) {
 }
 
 /**
+ * Writes an attendance cell directly from an explicit sign-in/sign-out
+ * pair, instead of deriving them from "now" like recordAttendanceEntry
+ * does. Used by the director's manual "Edit Day" correction tool, where
+ * both times (or the clearing of both) are supplied by the director
+ * rather than detected from a live submission.
+ *
+ * - Both blank: clears the cell entirely.
+ * - Sign-in only: same shape as a normal not-yet-signed-out entry.
+ * - Both present: total hours are recalculated, matching a normal
+ *   completed day.
+ * Late formatting is reapplied/removed based on the (possibly edited)
+ * sign-in time, exactly as a live submission would.
+ */
+function writeAttendanceCell(attendanceCell, signInTime, signOutTime) {
+  if (!signInTime && !signOutTime) {
+    attendanceCell.setValue('');
+    return;
+  }
+
+  let attendanceData;
+
+  if (signInTime && signOutTime) {
+    const signInDate = parseFormattedDateTime(signInTime);
+    const signOutDate = parseFormattedDateTime(signOutTime);
+    const totalHoursWorked = calculateTotalHours(signInDate, signOutDate);
+
+    attendanceData = {
+      'total hour worked': totalHoursWorked.formatted,
+      'total hour worked decimal': totalHoursWorked.decimal,
+      'sign in time': signInTime,
+      'sign out time': signOutTime,
+    };
+  } else {
+    attendanceData = { 'sign in time': signInTime };
+  }
+
+  const jsonText = JSON.stringify(attendanceData);
+
+  if (isLateSignIn(parseFormattedDateTime(signInTime))) {
+    applyLateSignInFormatting(attendanceCell, jsonText, signInTime);
+  } else {
+    attendanceCell.setValue(jsonText);
+  }
+}
+
+/**
  * Returns every non-blank name from the Name column, alphabetized,
  * for populating the website's dropdown. Personal codes are never
  * included in this response.
