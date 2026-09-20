@@ -52,6 +52,31 @@ function getWeekApprovals() {
 }
 
 /**
+ * Returns the sheet row number (2-based) of the (targetName, weekStart)
+ * row in the Week Approvals sheet, or null if there isn't one.
+ */
+function findWeekApprovalRow(sheet, targetName, weekStart) {
+  const lastRow = sheet.getLastRow();
+
+  if (lastRow < 2) {
+    return null;
+  }
+
+  const values = sheet.getRange(2, 1, lastRow - 1, 2).getValues();
+
+  for (let i = 0; i < values.length; i++) {
+    const rowName = String(values[i][0]).trim();
+    const rowWeekStart = String(values[i][1]).trim();
+
+    if (rowName.toLowerCase() === targetName.toLowerCase() && rowWeekStart === weekStart) {
+      return i + 2;
+    }
+  }
+
+  return null;
+}
+
+/**
  * Records (or re-records, if already approved) that submittedName
  * approved targetName's week starting weekStart ("M/d/yyyy", matching
  * buildDirectorWeeklyResult's weekStart). Director-only.
@@ -76,23 +101,7 @@ function approveWeek(submittedName, submittedPersonalCode, targetName, weekStart
   }
 
   const trimmedTargetName = targetName.trim();
-  const lastRow = sheet.getLastRow();
-  let existingRowNumber = null;
-
-  if (lastRow >= 2) {
-    const values = sheet.getRange(2, 1, lastRow - 1, 2).getValues();
-
-    for (let i = 0; i < values.length; i++) {
-      const rowName = String(values[i][0]).trim();
-      const rowWeekStart = String(values[i][1]).trim();
-
-      if (rowName.toLowerCase() === trimmedTargetName.toLowerCase() && rowWeekStart === weekStart) {
-        existingRowNumber = i + 2;
-        break;
-      }
-    }
-  }
-
+  const existingRowNumber = findWeekApprovalRow(sheet, trimmedTargetName, weekStart);
   const approvedAt = formatDateTime(new Date());
   const rowValues = [trimmedTargetName, weekStart, submittedName, approvedAt];
 
@@ -108,4 +117,35 @@ function approveWeek(submittedName, submittedPersonalCode, targetName, weekStart
     approvedBy: submittedName,
     approvedAt: approvedAt,
   };
+}
+
+/**
+ * Removes a previously recorded approval for targetName's week starting
+ * weekStart, if one exists. Director-only. A no-op (still successful)
+ * if there was nothing to remove.
+ */
+function unapproveWeek(submittedName, submittedPersonalCode, targetName, weekStart) {
+  const auth = authorizeDirector(submittedName, submittedPersonalCode);
+
+  if (!auth.authorized) {
+    return { success: false, error: auth.error };
+  }
+
+  if (!targetName || !weekStart) {
+    return { success: false, error: 'A name and week are required.' };
+  }
+
+  const trimmedTargetName = targetName.trim();
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = spreadsheet.getSheetByName(WEEK_APPROVALS_SHEET_NAME);
+
+  if (sheet) {
+    const existingRowNumber = findWeekApprovalRow(sheet, trimmedTargetName, weekStart);
+
+    if (existingRowNumber) {
+      sheet.deleteRow(existingRowNumber);
+    }
+  }
+
+  return { success: true, message: `Removed approval for ${trimmedTargetName}'s week of ${weekStart}.` };
 }

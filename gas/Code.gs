@@ -191,6 +191,8 @@ function doPost(e) {
       );
     } else if (action === 'approveWeek') {
       output = approveWeek(submittedName, submittedPersonalCode, data.targetName, data.weekStart);
+    } else if (action === 'unapproveWeek') {
+      output = unapproveWeek(submittedName, submittedPersonalCode, data.targetName, data.weekStart);
     } else if (action === 'generateCodes') {
       output = generatePersonalCodesFromBirthdays(submittedName, submittedPersonalCode);
     } else {
