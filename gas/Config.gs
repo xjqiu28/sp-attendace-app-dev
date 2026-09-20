@@ -19,3 +19,22 @@ const WEEKDAY_LABELS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 // sheet, "Late" badge on the director dashboard, and included in the
 // dashboard's "Signed In Late" list).
 const SIGN_IN_CUTOFF_HOUR = 9;
+
+// Anyone still signed in (no sign-out yet) at this time gets
+// automatically signed out — see AutoSignOut.gs.
+const AUTO_SIGN_OUT_HOUR = 18;
+const AUTO_SIGN_OUT_MINUTE = 30;
+
+// Optional roster column: a person's own weekly hour cap. Read by
+// buildDirectorWeeklyResult (DirectorView.gs) and the Friday auto-report
+// (WeeklyReport.gs) to flag weeks that go over it.
+const MAX_WEEKLY_HOURS_HEADER = 'Max Weekly Hours';
+
+// Where an over-cap week's approval (director name + timestamp) is
+// recorded — see WeekApprovals.gs. The tab is created automatically.
+const WEEK_APPROVALS_SHEET_NAME = 'Week Approvals';
+
+// Recipient for the Friday auto-report's emailed timesheet (see
+// WeeklyReport.gs). Leave blank ('') to skip emailing and only write
+// the report tab.
+const TIMESHEET_REPORT_EMAIL = 'wendy@occny.org';

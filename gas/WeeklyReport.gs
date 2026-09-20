@@ -12,13 +12,21 @@
  *
  * This is separate from the director dashboard's interactive weekly
  * view (see DirectorView.gs), which covers Monday-Saturday and lets
- * the director pick any past week.
+ * the director pick any past week — including its own over-cap
+ * flagging and approval workflow (WeekApprovals.gs). This report
+ * computes its own Monday-Friday total per person and flags anyone
+ * over their MAX_WEEKLY_HOURS_HEADER cap (Config.gs) independently,
+ * since the two totals can differ when someone works a Saturday.
+ *
+ * Also emails the report to TIMESHEET_REPORT_EMAIL (Config.gs) — set
+ * it to '' to only write the report tab without emailing anyone.
  *
  * ONE-TIME SETUP: run createWeeklyTotalsTrigger() once (select it in
  * the function dropdown at the top of the Apps Script editor, click
- * Run). That installs a trigger that runs generateWeeklyTotalsReport()
- * automatically every Friday night, summarizing that same Monday
- * through Friday.
+ * Run, and approve the permissions prompt — sending mail needs a
+ * scope the earlier setup didn't). That installs a trigger that runs
+ * generateWeeklyTotalsReport() automatically every Friday night,
+ * summarizing that same Monday through Friday.
  *
  * You can also run generateWeeklyTotalsReport() manually any time to
  * generate the report for the current/most recent work week on demand.
@@ -28,6 +36,7 @@ function generateWeeklyTotalsReport() {
   const sheet = getAttendanceSheet();
   const columnIndexes = getColumnIndexes(sheet);
   const nameColumnIndex = columnIndexes.Name;
+  const maxWeeklyHoursColumnIndex = columnIndexes[MAX_WEEKLY_HOURS_HEADER];
 
   if (nameColumnIndex === undefined) {
     throw new Error('The sheet must contain a "Name" header.');
@@ -80,10 +89,25 @@ function generateWeeklyTotalsReport() {
       }
     });
 
-    results.push({ name: name, dailyHours: dailyHours, weekTotal: weekTotal });
+    const maxWeeklyHoursValue =
+      maxWeeklyHoursColumnIndex !== undefined
+        ? sheet.getRange(personRowNumber, maxWeeklyHoursColumnIndex + 1).getValue()
+        : '';
+    const maxWeeklyHours =
+      maxWeeklyHoursValue !== '' && maxWeeklyHoursValue !== null ? Number(maxWeeklyHoursValue) : null;
+    const overCap = maxWeeklyHours !== null && weekTotal > maxWeeklyHours;
+
+    results.push({
+      name: name,
+      dailyHours: dailyHours,
+      weekTotal: weekTotal,
+      maxWeeklyHours: maxWeeklyHours,
+      overCap: overCap,
+    });
   }
 
   writeWeeklyTotalsReport(weekRange, results);
+  emailWeeklyTimesheet(weekRange, results);
 
   return results;
 }
@@ -142,7 +166,7 @@ function writeWeeklyTotalsReport(weekRange, results) {
 
   if (!reportSheet) {
     reportSheet = spreadsheet.insertSheet(tabName);
-    reportSheet.appendRow(['Name'].concat(WEEKDAY_LABELS, ['Total for Week']));
+    reportSheet.appendRow(['Name'].concat(WEEKDAY_LABELS, ['Total for Week', 'Over Cap']));
   }
 
   const lastRow = reportSheet.getLastRow();
@@ -167,7 +191,10 @@ function writeWeeklyTotalsReport(weekRange, results) {
 
     const roundedWeekTotal = Number(result.weekTotal.toFixed(2));
 
-    const rowValues = [result.name].concat(dailyValues, [roundedWeekTotal]);
+    const rowValues = [result.name].concat(dailyValues, [
+      roundedWeekTotal,
+      result.overCap ? 'Yes' : '',
+    ]);
 
     const existingRowNumber = existingRowByName[result.name];
 
@@ -176,6 +203,56 @@ function writeWeeklyTotalsReport(weekRange, results) {
     } else {
       reportSheet.appendRow(rowValues);
     }
+  });
+}
+
+/**
+ * Emails a summary of this week's report to TIMESHEET_REPORT_EMAIL
+ * (Config.gs) — anyone over their weekly hour cap is called out, since
+ * the director dashboard's Weekly tab is where those actually get
+ * approved (WeekApprovals.gs). Does nothing if the recipient is blank.
+ */
+function emailWeeklyTimesheet(weekRange, results) {
+  if (!TIMESHEET_REPORT_EMAIL) {
+    return;
+  }
+
+  const timeZone = Session.getScriptTimeZone();
+  const startLabel = Utilities.formatDate(weekRange.weekStart, timeZone, 'M/d/yyyy');
+  const endLabel = Utilities.formatDate(weekRange.weekEnd, timeZone, 'M/d/yyyy');
+  const overCapResults = results.filter((result) => result.overCap);
+
+  const rowsHtml = results
+    .map((result) => {
+      const rowStyle = result.overCap ? ' style="color:#c62828;font-weight:bold;"' : '';
+      const overCapText = result.overCap ? `Yes (cap: ${result.maxWeeklyHours})` : '';
+
+      return `<tr${rowStyle}><td>${result.name}</td><td>${result.weekTotal.toFixed(
+        2
+      )}</td><td>${overCapText}</td></tr>`;
+    })
+    .join('');
+
+  const overCapNotice =
+    overCapResults.length > 0
+      ? `<p><strong>${overCapResults.length} ${
+          overCapResults.length === 1 ? 'person is' : 'people are'
+        } over their weekly hour cap</strong> and need approval in the director dashboard's Weekly tab before this is final.</p>`
+      : '';
+
+  const htmlBody = `
+    <p>Weekly timesheet for ${startLabel} - ${endLabel}.</p>
+    ${overCapNotice}
+    <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse;">
+      <tr><th>Name</th><th>Total Hours</th><th>Over Cap</th></tr>
+      ${rowsHtml}
+    </table>
+  `;
+
+  MailApp.sendEmail({
+    to: TIMESHEET_REPORT_EMAIL,
+    subject: `Weekly Timesheet: ${startLabel} - ${endLabel}`,
+    htmlBody: htmlBody,
   });
 }
 

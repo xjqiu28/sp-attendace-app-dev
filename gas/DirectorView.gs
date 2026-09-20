@@ -257,7 +257,9 @@ function getAvailableWeeks(columnIndexes) {
  */
 function buildDirectorWeeklyResult(columnIndexes, dataRows, weekNumber) {
   const nameColumnIndex = columnIndexes.Name;
+  const maxWeeklyHoursColumnIndex = columnIndexes[MAX_WEEKLY_HOURS_HEADER];
   const availableWeeks = getAvailableWeeks(columnIndexes);
+  const approvals = getWeekApprovals();
 
   const selectedWeek =
     availableWeeks.find((week) => week.weekNumber === Number(weekNumber)) ||
@@ -325,11 +327,21 @@ function buildDirectorWeeklyResult(columnIndexes, dataRows, weekNumber) {
     const wholeHours = Math.floor(roundedTotal);
     const remainderMinutes = Math.round((roundedTotal - wholeHours) * 60);
 
+    const maxWeeklyHoursValue =
+      maxWeeklyHoursColumnIndex !== undefined ? row[maxWeeklyHoursColumnIndex] : '';
+    const maxWeeklyHours =
+      maxWeeklyHoursValue !== '' && maxWeeklyHoursValue !== null ? Number(maxWeeklyHoursValue) : null;
+    const overCap = maxWeeklyHours !== null && roundedTotal > maxWeeklyHours;
+    const approval = approvals[`${name.toLowerCase()}|${selectedWeek.weekStart}`] || null;
+
     entries.push({
       name: name,
       weekTotalHours: roundedTotal,
       weekTotalFormatted: `${wholeHours} hours and ${remainderMinutes} minutes`,
       days: days,
+      maxWeeklyHours: maxWeeklyHours,
+      overCap: overCap,
+      approval: approval,
     });
   });
 
