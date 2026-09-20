@@ -26,6 +26,12 @@
   &-row {
     display: flex;
     justify-content: space-between;
+    // A guaranteed floor, not just what space-between leaves over —
+    // without it, a long value (e.g. "45 hours and 30 minutes" in
+    // WeeklyTotalCard's bold total) in a narrow card can be exactly as
+    // wide as the row itself, leaving space-between nothing to
+    // distribute and the label/value touching with no gap at all.
+    gap: 8px;
     font-size: 13px;
     color: vars.$color-text;
     padding: 4px 0;
@@ -33,6 +39,68 @@
 
   &-label {
     color: vars.$color-text-muted;
+  }
+}
+
+// List-view alternative to .attendance-card — see the shared
+// .entry-list container in styles/CardGrid.scss. Reused, with these
+// same override rules, by WeeklyTotalCard (adds .weekly-card) and
+// EditEntryCard (adds .edit-entry-field for its time inputs).
+.attendance-row {
+  padding: 10px 16px;
+  border-bottom: 1px solid vars.$color-border-light;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 20px;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .attendance-card-header {
+    margin-bottom: 0;
+    flex: 1 1 auto;
+    min-width: 140px;
+  }
+
+  .attendance-card-fields {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 20px;
+  }
+
+  .attendance-card-row {
+    padding: 0;
+    gap: 4px;
+    justify-content: flex-start;
+  }
+
+  .edit-entry-field {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    label {
+      margin: 0;
+      white-space: nowrap;
+    }
+
+    input {
+      width: auto;
+    }
+  }
+
+  button {
+    width: auto;
+    margin-top: 0;
+    flex: none;
+  }
+
+  .status {
+    margin-top: 0;
+    min-height: auto;
   }
 }
 
@@ -62,4 +130,14 @@
 .status-late {
   background: vars.$color-error-bg;
   color: vars.$color-error-text;
+}
+
+.status-needs-approval {
+  background: vars.$color-error-bg;
+  color: vars.$color-error-text;
+}
+
+.status-approved {
+  background: vars.$color-success-bg;
+  color: vars.$color-success-text;
 }

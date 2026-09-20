@@ -4,6 +4,7 @@ import {
   generatePersonalCodes,
   getEditDayView,
   updateAttendanceEntry,
+  approveWeek,
 } from '../api/attendanceApi.js';
 import { toBackendDate, toBackendDateTime, todayDateInputValue } from '../utils/dateTimeFormat.js';
 
@@ -11,6 +12,17 @@ function networkErrorText(err) {
   return err.name === 'AbortError'
     ? 'This is taking too long. Please try again.'
     : 'Network error — please try again.';
+}
+
+const VIEW_MODE_KEY = 'sp-attendance-director-view-mode';
+
+function readStoredViewMode() {
+  try {
+    const stored = localStorage.getItem(VIEW_MODE_KEY);
+    return stored === 'list' ? 'list' : 'card';
+  } catch {
+    return 'card';
+  }
 }
 
 // All state + network calls for the director dashboard, kept out of
@@ -25,6 +37,10 @@ export default function useDirectorDashboard() {
   // Daily/Weekly toggle and week picker can re-fetch without asking again.
   const [credentials, setCredentials] = useState(null); // { name, code }
   const [mode, setMode] = useState('daily'); // 'daily' | 'weekly' | 'edit'
+  // Applies across all three modes — how densely entries are shown,
+  // not which entries. Persisted since it's a display preference, not
+  // per-session state.
+  const [viewMode, setViewMode] = useState(readStoredViewMode); // 'card' | 'list'
   const [dashboardData, setDashboardData] = useState(null);
   const [dashboardLoading, setDashboardLoading] = useState(false);
   const [dashboardError, setDashboardError] = useState(null);
@@ -111,6 +127,17 @@ export default function useDirectorDashboard() {
     }
   }
 
+  function handleViewModeChange(newViewMode) {
+    setViewMode(newViewMode);
+
+    try {
+      localStorage.setItem(VIEW_MODE_KEY, newViewMode);
+    } catch {
+      // Storage unavailable (private browsing, quota, etc) — the
+      // preference just won't survive a reload, which is fine.
+    }
+  }
+
   function handleWeekChange(weekNumber) {
     if (!credentials) {
       return;
@@ -184,6 +211,33 @@ export default function useDirectorDashboard() {
     return result;
   }
 
+  // Always resolves (never rejects) with { success, message,
+  // approvedBy, approvedAt } or { success: false, error } — same
+  // pattern as handleSaveEntry — so WeeklyTotalCard can show its own
+  // inline feedback without needing its own try/catch.
+  async function handleApproveWeek(targetName, weekStart) {
+    let result;
+
+    try {
+      result = await approveWeek(credentials.name, credentials.code, targetName, weekStart);
+    } catch (err) {
+      return { success: false, error: networkErrorText(err) };
+    }
+
+    if (result.success) {
+      setDashboardData((previous) => ({
+        ...previous,
+        entries: previous.entries.map((entry) =>
+          entry.name === targetName
+            ? { ...entry, approval: { approvedBy: result.approvedBy, approvedAt: result.approvedAt } }
+            : entry
+        ),
+      }));
+    }
+
+    return result;
+  }
+
   function handleLogOut() {
     setCredentials(null);
     setDashboardData(null);
@@ -222,6 +276,7 @@ export default function useDirectorDashboard() {
     status,
     credentials,
     mode,
+    viewMode,
     dashboardData,
     dashboardLoading,
     dashboardError,
@@ -232,10 +287,12 @@ export default function useDirectorDashboard() {
     editDayError,
     handleSubmit,
     handleModeChange,
+    handleViewModeChange,
     handleWeekChange,
     handleLogOut,
     handleGenerateCodes,
     handleEditDateChange,
     handleSaveEntry,
+    handleApproveWeek,
   };
 }

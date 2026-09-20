@@ -6,9 +6,9 @@ const STATUS_CLASS = {
   'Not Signed In': 'status-not-signed-in',
 };
 
-export default function AttendanceCard({ entry }) {
+export default function AttendanceCard({ entry, viewMode }) {
   return (
-    <div className="attendance-card">
+    <div className={viewMode === 'list' ? 'attendance-row' : 'attendance-card'}>
       <div className="attendance-card-header">
         <span className="attendance-card-name">{entry.name}</span>
         <div className="attendance-card-badges">
@@ -17,19 +17,21 @@ export default function AttendanceCard({ entry }) {
         </div>
       </div>
 
-      <div className="attendance-card-row">
-        <span className="attendance-card-label">Sign In</span>
-        <span>{entry.signInTime || '—'}</span>
-      </div>
+      <div className="attendance-card-fields">
+        <div className="attendance-card-row">
+          <span className="attendance-card-label">Sign In</span>
+          <span>{entry.signInTime || '—'}</span>
+        </div>
 
-      <div className="attendance-card-row">
-        <span className="attendance-card-label">Sign Out</span>
-        <span>{entry.signOutTime || '—'}</span>
-      </div>
+        <div className="attendance-card-row">
+          <span className="attendance-card-label">Sign Out</span>
+          <span>{entry.signOutTime || '—'}</span>
+        </div>
 
-      <div className="attendance-card-row">
-        <span className="attendance-card-label">Total Hours</span>
-        <span>{entry.totalHoursFormatted || '—'}</span>
+        <div className="attendance-card-row">
+          <span className="attendance-card-label">Total Hours</span>
+          <span>{entry.totalHoursFormatted || '—'}</span>
+        </div>
       </div>
     </div>
   );

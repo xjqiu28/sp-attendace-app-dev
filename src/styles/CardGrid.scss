@@ -1,8 +1,23 @@
-// Shared by DailyView and WeeklyView — the grid itself isn't owned by
-// either one, so it lives here instead of in one component's folder,
-// and both import it directly.
+@use './variables' as vars;
+
+// Shared by DailyView, WeeklyView, and EditDayView — the container
+// itself isn't owned by any one of them, so it lives here instead of
+// in one component's folder, and all three import it directly.
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 14px;
+}
+
+// The list-view alternative to .card-grid: one boxed container instead
+// of many separate cards, with each entry (AttendanceCard/
+// WeeklyTotalCard/EditEntryCard, rendered in their "list" look — see
+// AttendanceCard.scss's .attendance-row) as a thin divided row inside.
+.entry-list {
+  display: flex;
+  flex-direction: column;
+  background: vars.$color-surface;
+  border-radius: 12px;
+  box-shadow: vars.$shadow-card;
+  overflow: hidden;
 }

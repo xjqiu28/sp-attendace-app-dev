@@ -58,17 +58,23 @@ contents:
   every request isn't a full-sheet read.
 - `DirectorView.gs` — director dashboard data (daily + weekly views).
 - `EditDay.gs` — the director's manual "Edit Day" correction tool.
-- `WeeklyReport.gs` — the Friday auto-report to a per-week tab.
+- `WeekApprovals.gs` — records a director's approval of an over-cap week.
+- `AutoSignOut.gs` — end-of-day auto sign-out for anyone who forgot.
+- `WeeklyReport.gs` — the Friday auto-report, written to a per-week tab
+  and emailed.
 - `PersonalCodes.gs` — personal code generation.
 
-After pasting all nine files in, redeploy (Deploy > Manage deployments
-> Edit > New version) so the live web app picks up the changes.
+After pasting all eleven files in, redeploy (Deploy > Manage
+deployments > Edit > New version) so the live web app picks up the
+changes.
 
 ### Sheet setup
 
 Required headers on the response sheet: `Name`, `Personal Code`.
 Optional: `Admin` (`Yes`/`True`/`Y`/`1` for director-dashboard access),
-`Birthday` (needed for the "Generate New Codes" button), `Timestamp`.
+`Birthday` (needed for the "Generate New Codes" button), `Max Weekly
+Hours` (a number — see "Weekly hour caps and approval" below),
+`Timestamp`.
 
 ### Generating personal codes from birthdays
 
@@ -124,3 +130,45 @@ forgot to sign in, or forgot to sign out and only came back the next
 day. Clearing both times removes the entry entirely; total hours and
 the late-sign-in flag are recalculated the same way a normal
 self-service submission would.
+
+### Auto sign-out for forgotten sign-outs
+
+Anyone still signed in with no sign-out by `AUTO_SIGN_OUT_HOUR:
+AUTO_SIGN_OUT_MINUTE` (Config.gs, default 6:30pm) gets automatically
+signed out at that time — total hours and the late-sign-in flag are
+computed exactly as a normal sign-out would be. This runs alongside
+Edit Day, not instead of it: Edit Day still exists for anyone the
+auto sign-out didn't catch, or for fixing the auto-filled time itself
+if 6:30pm isn't accurate for that person that day.
+
+**ONE-TIME SETUP**: run `createAutoSignOutTrigger()` once from the
+Apps Script editor's function dropdown (approve the permissions
+prompt). Apps Script time triggers fire within roughly a 15-minute
+window of the requested time, not the exact minute.
+
+### Weekly hour caps and approval
+
+Add a `Max Weekly Hours` column to the sheet and give a person a
+number in it to cap their week. In the director dashboard's Weekly
+tab, going over that cap shows a "Needs Approval" badge and an
+Approve button; clicking it records who approved it and when (in a
+`Week Approvals` tab, created automatically) and the badge switches to
+"Approved". This is a one-time approval per (person, week) — editing
+that week's hours afterward doesn't automatically un-approve it.
+
+### Weekly timesheet email
+
+The Friday auto-report (see "Correcting a missed sign-in/sign-out"'s
+sibling job, `generateWeeklyTotalsReport`) also emails a summary to
+`TIMESHEET_REPORT_EMAIL` (Config.gs) — a simple table of everyone's
+hours for that Monday-Friday, with anyone over their `Max Weekly
+Hours` called out. Set it to `''` to only write the report tab
+without emailing anyone. The first run after adding this needs you to
+approve a new permissions prompt (sending mail is a new scope) — run
+`generateWeeklyTotalsReport()` manually once from the Apps Script
+editor rather than waiting for the Friday trigger to hit it.
+
+Note this email's over-cap check is independent from the Weekly tab's
+approval workflow above: this report covers Monday-Friday and the
+interactive Weekly tab covers Monday-Saturday, so the two can show
+different totals for a week that includes Saturday hours.

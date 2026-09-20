@@ -18,6 +18,7 @@ export default function DirectorDashboard({ names, namesLoading, namesLoadFailed
     status,
     credentials,
     mode,
+    viewMode,
     dashboardData,
     dashboardLoading,
     dashboardError,
@@ -28,11 +29,13 @@ export default function DirectorDashboard({ names, namesLoading, namesLoadFailed
     editDayError,
     handleSubmit,
     handleModeChange,
+    handleViewModeChange,
     handleWeekChange,
     handleLogOut,
     handleGenerateCodes,
     handleEditDateChange,
     handleSaveEntry,
+    handleApproveWeek,
   } = useDirectorDashboard();
 
   if (!credentials) {
@@ -75,28 +78,47 @@ export default function DirectorDashboard({ names, namesLoading, namesLoadFailed
         </div>
       </div>
 
-      <div className="tabs dashboard-mode-tabs">
-        <button
-          type="button"
-          className={mode === 'daily' ? 'tab active' : 'tab'}
-          onClick={() => handleModeChange('daily')}
-        >
-          Daily
-        </button>
-        <button
-          type="button"
-          className={mode === 'weekly' ? 'tab active' : 'tab'}
-          onClick={() => handleModeChange('weekly')}
-        >
-          Weekly
-        </button>
-        <button
-          type="button"
-          className={mode === 'edit' ? 'tab active' : 'tab'}
-          onClick={() => handleModeChange('edit')}
-        >
-          Edit Day
-        </button>
+      <div className="dashboard-mode-row">
+        <div className="tabs dashboard-mode-tabs">
+          <button
+            type="button"
+            className={mode === 'daily' ? 'tab active' : 'tab'}
+            onClick={() => handleModeChange('daily')}
+          >
+            Daily
+          </button>
+          <button
+            type="button"
+            className={mode === 'weekly' ? 'tab active' : 'tab'}
+            onClick={() => handleModeChange('weekly')}
+          >
+            Weekly
+          </button>
+          <button
+            type="button"
+            className={mode === 'edit' ? 'tab active' : 'tab'}
+            onClick={() => handleModeChange('edit')}
+          >
+            Edit Day
+          </button>
+        </div>
+
+        <div className="tabs view-mode-tabs">
+          <button
+            type="button"
+            className={viewMode === 'card' ? 'tab active' : 'tab'}
+            onClick={() => handleViewModeChange('card')}
+          >
+            Card
+          </button>
+          <button
+            type="button"
+            className={viewMode === 'list' ? 'tab active' : 'tab'}
+            onClick={() => handleViewModeChange('list')}
+          >
+            List
+          </button>
+        </div>
       </div>
 
       {mode === 'edit' ? (
@@ -107,6 +129,7 @@ export default function DirectorDashboard({ names, namesLoading, namesLoadFailed
           loading={editDayLoading}
           error={editDayError}
           onSaveEntry={handleSaveEntry}
+          viewMode={viewMode}
         />
       ) : (
         <>
@@ -115,9 +138,14 @@ export default function DirectorDashboard({ names, namesLoading, namesLoadFailed
           {dashboardLoading ? (
             <StatusMessage text="Loading..." type="" />
           ) : mode === 'daily' ? (
-            <DailyView data={dashboardData} />
+            <DailyView data={dashboardData} viewMode={viewMode} />
           ) : (
-            <WeeklyView data={dashboardData} onWeekChange={handleWeekChange} />
+            <WeeklyView
+              data={dashboardData}
+              onWeekChange={handleWeekChange}
+              viewMode={viewMode}
+              onApproveWeek={handleApproveWeek}
+            />
           )}
         </>
       )}

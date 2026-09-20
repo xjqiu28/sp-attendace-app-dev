@@ -4,7 +4,7 @@ import '../LoginCard/LoginCard.scss'; // label/input base styles for the date fi
 import '../../styles/CardGrid.scss';
 import './EditDayView.scss';
 
-export default function EditDayView({ date, onDateChange, data, loading, error, onSaveEntry }) {
+export default function EditDayView({ date, onDateChange, data, loading, error, onSaveEntry, viewMode }) {
   return (
     <div className="edit-day">
       <div className="edit-day-date-field">
@@ -23,9 +23,9 @@ export default function EditDayView({ date, onDateChange, data, loading, error, 
         <StatusMessage text="Loading..." type="" />
       ) : (
         data && (
-          <div className="card-grid">
+          <div className={viewMode === 'list' ? 'entry-list' : 'card-grid'}>
             {data.entries.map((entry) => (
-              <EditEntryCard key={entry.name} entry={entry} onSave={onSaveEntry} />
+              <EditEntryCard key={entry.name} entry={entry} onSave={onSaveEntry} viewMode={viewMode} />
             ))}
           </div>
         )

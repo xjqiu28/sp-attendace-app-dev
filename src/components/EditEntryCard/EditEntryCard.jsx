@@ -8,7 +8,7 @@ import '../LoginCard/LoginCard.scss'; // label/input/button base styles
 // currently has selected. Local draft state only — nothing is sent
 // until Save is pressed, so switching dates elsewhere never loses or
 // clobbers an in-progress edit.
-export default function EditEntryCard({ entry, onSave }) {
+export default function EditEntryCard({ entry, onSave, viewMode }) {
   const [signIn, setSignIn] = useState(toTimeInputValue(entry.signInTime));
   const [signOut, setSignOut] = useState(toTimeInputValue(entry.signOutTime));
   const [saving, setSaving] = useState(false);
@@ -32,26 +32,32 @@ export default function EditEntryCard({ entry, onSave }) {
   }
 
   return (
-    <div className="attendance-card">
+    <div className={viewMode === 'list' ? 'attendance-row' : 'attendance-card'}>
       <div className="attendance-card-header">
         <span className="attendance-card-name">{entry.name}</span>
       </div>
 
-      <label htmlFor={`${fieldId}-sign-in`}>Sign In</label>
-      <input
-        type="time"
-        id={`${fieldId}-sign-in`}
-        value={signIn}
-        onChange={(event) => setSignIn(event.target.value)}
-      />
+      <div className="attendance-card-fields">
+        <div className="edit-entry-field">
+          <label htmlFor={`${fieldId}-sign-in`}>Sign In</label>
+          <input
+            type="time"
+            id={`${fieldId}-sign-in`}
+            value={signIn}
+            onChange={(event) => setSignIn(event.target.value)}
+          />
+        </div>
 
-      <label htmlFor={`${fieldId}-sign-out`}>Sign Out</label>
-      <input
-        type="time"
-        id={`${fieldId}-sign-out`}
-        value={signOut}
-        onChange={(event) => setSignOut(event.target.value)}
-      />
+        <div className="edit-entry-field">
+          <label htmlFor={`${fieldId}-sign-out`}>Sign Out</label>
+          <input
+            type="time"
+            id={`${fieldId}-sign-out`}
+            value={signOut}
+            onChange={(event) => setSignOut(event.target.value)}
+          />
+        </div>
+      </div>
 
       <button type="button" onClick={handleSave} disabled={saving}>
         {saving ? 'Saving...' : 'Save'}

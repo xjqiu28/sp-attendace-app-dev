@@ -15,6 +15,44 @@
   color: vars.$color-text-faint;
 }
 
+// Shown only when the week is over the person's cap (entry.overCap) —
+// either an Approve button, or who/when it was already approved by.
+.weekly-approval {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+
+  button {
+    width: auto;
+    margin-top: 0;
+  }
+
+  .status {
+    margin-top: 0;
+    min-height: auto;
+    text-align: left;
+  }
+
+  // Same full-width-on-its-own-line trick as .weekly-breakdown below —
+  // .attendance-row (list mode) is a flex-wrap row, so without this
+  // .weekly-approval would get squeezed in next to the other fields.
+  .attendance-row & {
+    flex-basis: 100%;
+  }
+
+  &-cap {
+    font-size: 12px;
+    color: vars.$color-text-muted;
+  }
+
+  &-detail {
+    font-size: 12px;
+    color: vars.$color-text;
+  }
+}
+
 .weekly-breakdown {
   margin-top: 10px;
   padding-top: 10px;
@@ -22,6 +60,13 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+
+  // .attendance-row (list mode) is itself flex-wrap, so without this
+  // the breakdown gets squeezed in as just another wrapped item next
+  // to "Total Hours" instead of dropping to its own full-width line.
+  .attendance-row & {
+    flex-basis: 100%;
+  }
 
   &-row {
     font-size: 12px;

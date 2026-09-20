@@ -41,7 +41,8 @@ export async function submitAttendance(name, code) {
 // totalSignedIn, absentNames, lateNames: [{ name, lateBy }].
 // Weekly: returns { success: true, weekNumber, weekStart, weekEnd,
 // availableWeeks: [{ weekNumber, weekStart, weekEnd, label }], entries:
-// [{ name, weekTotalHours, weekTotalFormatted, days }] }. Pass weekNumber
+// [{ name, weekTotalHours, weekTotalFormatted, days, maxWeeklyHours,
+// overCap, approval: { approvedBy, approvedAt } | null }] }. Pass weekNumber
 // to view a specific week (from availableWeeks); omitted, it defaults to
 // the most recent week. Either way, or { success: false, error } on
 // rejection. Read-only — never writes to the sheet. Throws (with
@@ -88,6 +89,21 @@ export async function updateAttendanceEntry(name, code, targetName, date, signIn
       signInTime,
       signOutTime,
     }),
+  });
+
+  return response.json();
+}
+
+// Records that name/code (a director) approved targetName's week
+// starting weekStart (the "M/d/yyyy" weekStart a getDirectorView weekly
+// call returned). Director-only. Returns { success: true, message,
+// approvedBy, approvedAt } or { success: false, error }. Throws (with
+// err.name === 'AbortError' on timeout) on network failure.
+export async function approveWeek(name, code, targetName, weekStart) {
+  const response = await fetchWithTimeout(WEB_APP_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'approveWeek', name, code, targetName, weekStart }),
   });
 
   return response.json();

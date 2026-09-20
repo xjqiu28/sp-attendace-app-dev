@@ -73,4 +73,19 @@
   &-mode-tabs {
     width: min(100%, 320px);
   }
+
+  // Mode tabs (what to show) and view-mode tabs (how dense to show it)
+  // sit on the same row when there's room, and wrap onto their own
+  // rows on narrow screens rather than fighting for space.
+  &-mode-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+}
+
+.view-mode-tabs {
+  width: 140px;
 }

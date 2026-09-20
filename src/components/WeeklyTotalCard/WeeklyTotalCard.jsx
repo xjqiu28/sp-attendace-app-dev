@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import StatusMessage from '../StatusMessage/StatusMessage.jsx';
 import '@/components/AttendanceCard/AttendanceCard.scss';
 import './WeeklyTotalCard.scss';
 
@@ -19,12 +20,35 @@ function formatTimeOnly(dateTimeString) {
   return `${hour}:${minute} ${parts[2]}`;
 }
 
-export default function WeeklyTotalCard({ entry }) {
+export default function WeeklyTotalCard({ entry, viewMode, weekStart, onApprove }) {
   const [expanded, setExpanded] = useState(false);
+  const [approving, setApproving] = useState(false);
+  const [approveStatus, setApproveStatus] = useState(null); // { text, type }
+
+  async function handleApprove(event) {
+    // Approving lives inside the same clickable card that toggles the
+    // day breakdown open/closed — without this it would also expand.
+    event.stopPropagation();
+
+    setApproving(true);
+    setApproveStatus({ text: 'Approving...', type: '' });
+
+    const result = await onApprove(entry.name, weekStart);
+
+    if (result.success) {
+      // The badge itself (entry.approval, updated by the parent) already
+      // shows "Approved" — no need for a separate lingering status line.
+      setApproveStatus(null);
+    } else {
+      setApproveStatus({ text: result.error, type: 'error' });
+    }
+
+    setApproving(false);
+  }
 
   return (
     <div
-      className="attendance-card weekly-card"
+      className={`${viewMode === 'list' ? 'attendance-row' : 'attendance-card'} weekly-card`}
       onClick={() => setExpanded((previous) => !previous)}
       role="button"
       tabIndex={0}
@@ -36,13 +60,41 @@ export default function WeeklyTotalCard({ entry }) {
     >
       <div className="attendance-card-header">
         <span className="attendance-card-name">{entry.name}</span>
-        <span className="expand-indicator">{expanded ? '▲' : '▼'}</span>
+        <div className="attendance-card-badges">
+          {entry.overCap &&
+            (entry.approval ? (
+              <span className="badge status-approved">Approved</span>
+            ) : (
+              <span className="badge status-needs-approval">Needs Approval</span>
+            ))}
+          <span className="expand-indicator">{expanded ? '▲' : '▼'}</span>
+        </div>
       </div>
 
-      <div className="attendance-card-row">
-        <span className="attendance-card-label">Total Hours</span>
-        <span className="attendance-card-total">{entry.weekTotalFormatted}</span>
+      <div className="attendance-card-fields">
+        <div className="attendance-card-row">
+          <span className="attendance-card-label">Total Hours</span>
+          <span className="attendance-card-total">{entry.weekTotalFormatted}</span>
+        </div>
       </div>
+
+      {entry.overCap && (
+        <div className="weekly-approval">
+          <span className="weekly-approval-cap">Cap: {entry.maxWeeklyHours} hrs/week</span>
+
+          {entry.approval ? (
+            <span className="weekly-approval-detail">
+              Approved by {entry.approval.approvedBy} on {entry.approval.approvedAt}
+            </span>
+          ) : (
+            <button type="button" onClick={handleApprove} disabled={approving}>
+              {approving ? 'Approving...' : 'Approve'}
+            </button>
+          )}
+
+          <StatusMessage text={approveStatus?.text} type={approveStatus?.type} />
+        </div>
+      )}
 
       {expanded && (
         <div className="weekly-breakdown">
