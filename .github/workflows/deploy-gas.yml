@@ -12,7 +12,7 @@ on:
 # to be re-pointed at the newly pushed version too. Update this if the
 # deployment is ever recreated.
 env:
-  CLASP_DEPLOYMENT_ID: AKfycbyiKasAHQVaTZWMROTFV88caPB7jGAtDecnbTj3MVZdAqZs8x9YCcFEkKbwKIiLWOtZEg
+  CLASP_DEPLOYMENT_ID: AKfycbyLdG8ftzroVx3RlwJeu_85kiYeyRp2kGvjcyTuazDnMkLAF81qGJE53Dbyq5hgFjImHg
 
 jobs:
   deploy:
