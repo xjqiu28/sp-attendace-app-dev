@@ -61,9 +61,7 @@ const SCHEDULED_SIGN_OUT_HEADER = 'Scheduled Sign Out';
 // so the code always finds the right one with no manual config change
 // needed year to year.
 //
-// PASTE_YOUR_APPLICATIONS_SHEET_ID_HERE: paste the ID from that
-// sheet's URL (the long string between /d/ and /edit).
-const APPLICATIONS_SHEET_ID = 'PASTE_YOUR_APPLICATIONS_SHEET_ID_HERE';
+const APPLICATIONS_SHEET_ID = '1ZwUq2YM-gRl2j__O7lbAC1eIdpD5CXskzh5zbG6JxBA';
 
 const APPLICATIONS_TAB_SUFFIX = 'Applications';
 
