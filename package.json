@@ -10,7 +10,8 @@
     "gas:login": "clasp login",
     "gas:pull": "clasp pull",
     "gas:push": "clasp push",
-    "gas:open": "clasp open"
+    "gas:open": "clasp open",
+    "gas:refresh-secret": "bash scripts/refresh-clasp-secret.sh"
   },
   "dependencies": {
     "react": "^18.3.1",
